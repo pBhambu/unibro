@@ -31,11 +31,9 @@ export default function ApplicationPage() {
           <div className="text-xl font-semibold mb-4">My Profile</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <AutosaveInput storageKey="profile.majors" label="Interested Majors" placeholder="Computer Science, Economics" />
-            <AutosaveInput storageKey="profile.interests" label="Personal Interests" placeholder="Robotics, Debate" />
             <AutosaveInput storageKey="profile.location" label="Location" placeholder="Seattle, WA" />
             <AutosaveInput storageKey="profile.school" label="Current School" placeholder="Roosevelt High School" />
-            <AutosaveInput storageKey="profile.hobbies" label="Hobbies" placeholder="Photography, Hiking" />
-            <AutosaveInput storageKey="profile.skills" label="Skills" placeholder="Python, Public Speaking" />
+            <AutosaveTextArea storageKey="profile.extras" label="Interests, hobbies, skills" placeholder="Robotics; Debate; Photography; Hiking; Python; Public Speaking" rows={6} />
           </div>
         </div>
 

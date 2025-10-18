@@ -37,9 +37,16 @@ export default function CollegeEditorPage() {
   useEffect(()=>{ localStorage.setItem(`college.${id}.prompt`, prompt); }, [id, prompt]);
 
   const generate = async () => {
-    const res = await fetch("/api/gemini/questions", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ prompt })});
-    const data = await res.json();
-    setFields(data.fields || []);
+    try {
+      const res = await fetch("/api/gemini/questions", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ prompt })});
+      const txt = await res.text();
+      let data: any = {};
+      try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+      if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+      setFields(Array.isArray(data.fields) ? data.fields : []);
+    } catch {
+      setFields([]);
+    }
   };
 
   const estimate = async () => {
@@ -50,20 +57,31 @@ export default function CollegeEditorPage() {
       honors: localStorage.getItem("app.honors"),
       additional: localStorage.getItem("app.additional"),
       majors: localStorage.getItem("profile.majors"),
-      interests: localStorage.getItem("profile.interests"),
+      extras: localStorage.getItem("profile.extras") || [
+        localStorage.getItem("profile.interests"),
+        localStorage.getItem("profile.hobbies"),
+        localStorage.getItem("profile.skills"),
+      ].filter(Boolean).join(", "),
       location: localStorage.getItem("profile.location"),
       school: localStorage.getItem("profile.school"),
-      hobbies: localStorage.getItem("profile.hobbies"),
-      skills: localStorage.getItem("profile.skills"),
     };
-    const res = await fetch("/api/gemini/chance", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ college: name, answers, profile })});
-    const data = await res.json();
-    setPercent(data.percent);
-    localStorage.setItem(`college.${id}.percent`, String(data.percent));
-
-    const list = JSON.parse(localStorage.getItem("colleges")||"[]");
-    const idx = list.findIndex((x: any)=>x.id===id);
-    if (idx>=0) { list[idx].percent = data.percent; localStorage.setItem("colleges", JSON.stringify(list)); }
+    try {
+      const res = await fetch("/api/gemini/chance", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ college: name, answers, profile })});
+      const txt = await res.text();
+      let data: any = {};
+      try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+      if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+      const pct = typeof data.percent === 'number' ? data.percent : null;
+      if (pct !== null) {
+        setPercent(pct);
+        localStorage.setItem(`college.${id}.percent`, String(pct));
+        const list = JSON.parse(localStorage.getItem("colleges")||"[]");
+        const idx = list.findIndex((x: any)=>x.id===id);
+        if (idx>=0) { list[idx].percent = pct; localStorage.setItem("colleges", JSON.stringify(list)); }
+      }
+    } catch {
+      // no-op, keep prior percent
+    }
   };
 
   return (

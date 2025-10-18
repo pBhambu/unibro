@@ -10,6 +10,31 @@ export default function CollegesPage() {
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [showSuggest, setShowSuggest] = useState(false);
+  const allColleges = [
+    { name: "University of Washington", city: "Seattle", state: "Washington" },
+    { name: "Western Washington University", city: "Bellingham", state: "Washington" },
+    { name: "University of Illinois Urbana-Champaign", city: "Urbana-Champaign", state: "Illinois" },
+    { name: "Columbia University", city: "New York City", state: "New York" },
+    { name: "Harvard University", city: "Cambridge", state: "Massachusetts" },
+    { name: "Stanford University", city: "Stanford", state: "California" },
+    { name: "Massachusetts Institute of Technology", city: "Cambridge", state: "Massachusetts" },
+    { name: "Carnegie Mellon University", city: "Pittsburgh", state: "Pennsylvania" },
+    { name: "University of California, Berkeley", city: "Berkeley", state: "California" },
+    { name: "University of California, Los Angeles", city: "Los Angeles", state: "California" },
+    { name: "Princeton University", city: "Princeton", state: "New Jersey" },
+    { name: "Yale University", city: "New Haven", state: "Connecticut" },
+    { name: "Duke University", city: "Durham", state: "North Carolina" },
+    { name: "University of Michigan", city: "Ann Arbor", state: "Michigan" },
+    { name: "Georgia Institute of Technology", city: "Atlanta", state: "Georgia" },
+    { name: "Cornell University", city: "Ithaca", state: "New York" },
+    { name: "Brown University", city: "Providence", state: "Rhode Island" },
+    { name: "University of Texas at Austin", city: "Austin", state: "Texas" },
+    { name: "Purdue University", city: "West Lafayette", state: "Indiana" },
+    { name: "University of Southern California", city: "Los Angeles", state: "California" },
+  ];
+  const suggestions = name.length < 2 ? [] : allColleges.filter(c => c.name.toLowerCase().includes(name.toLowerCase())).slice(0, 8);
+
   const categoryFromPercent = (p?: number) => {
     if (typeof p !== "number") return undefined;
     if (p >= 80) return "Safety" as const;
@@ -30,6 +55,7 @@ export default function CollegesPage() {
     if (!name.trim()) return;
     setColleges((c) => [{ id: uuid(), name, city, state, percent: undefined }, ...c]);
     setName(""); setCity(""); setState("");
+    setShowSuggest(false);
   };
 
   return (
@@ -38,7 +64,22 @@ export default function CollegesPage() {
         <div className="card p-4">
           <div className="font-semibold mb-2">Add College</div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <input className="input sm:col-span-2" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
+            <div className="relative sm:col-span-2">
+              <input className="input w-full" placeholder="Name" value={name}
+                onFocus={()=>setShowSuggest(true)}
+                onChange={(e)=>{ setName(e.target.value); setShowSuggest(true); }} />
+              {showSuggest && suggestions.length > 0 && (
+                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-soft max-h-60 overflow-auto">
+                  {suggestions.map((s, i)=> (
+                    <li key={i} className="px-3 py-2 hover:bg-purple-50 cursor-pointer"
+                      onMouseDown={()=>{ setName(s.name); setCity(s.city); setState(s.state); setShowSuggest(false); }}>
+                      <div className="font-medium">{s.name}</div>
+                      <div className="text-xs text-gray-600">{s.city}, {s.state}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <input className="input" placeholder="City" value={city} onChange={(e)=>setCity(e.target.value)} />
             <input className="input" placeholder="State" value={state} onChange={(e)=>setState(e.target.value)} />
           </div>

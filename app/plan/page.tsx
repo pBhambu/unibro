@@ -19,14 +19,23 @@ export default function PlanPage() {
   const generate = async () => {
     const profile = {
       majors: localStorage.getItem("profile.majors"),
-      interests: localStorage.getItem("profile.interests"),
+      extras: localStorage.getItem("profile.extras") || [
+        localStorage.getItem("profile.interests"),
+        localStorage.getItem("profile.hobbies"),
+        localStorage.getItem("profile.skills"),
+      ].filter(Boolean).join(", "),
       location: localStorage.getItem("profile.location"),
-      skills: localStorage.getItem("profile.skills"),
       activities: localStorage.getItem("app.activities"),
     };
-    const res = await fetch("/api/gemini/plan", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ endDate, profile })});
-    const data = await res.json();
-    setPlan(data.plan);
+    try {
+      const res = await fetch("/api/gemini/plan", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ endDate, profile })});
+      const txt = await res.text();
+      let data: any = {};
+      try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+      setPlan(data.plan || "");
+    } catch {
+      setPlan("");
+    }
   };
 
   return (

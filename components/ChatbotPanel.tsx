@@ -18,8 +18,11 @@ export function ChatbotPanel({ context }: { context?: any }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [...messages, userMsg], context }),
       });
-      const data = await res.json();
-      setMessages((m) => [...m, { role: "assistant", content: data.text }]);
+      const txt = await res.text();
+      let data: any = {};
+      try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+      const text = res.ok ? (data.text || "") : "I'm having trouble responding right now.";
+      setMessages((m) => [...m, { role: "assistant", content: text }]);
     } catch (e: any) {
       setMessages((m) => [
         ...m,

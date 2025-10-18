@@ -8,7 +8,7 @@ export async function geminiText(prompt: string): Promise<string> {
   if (!apiKey) return mockResponse(prompt);
   const { GoogleGenerativeAI } = await import("@google/generative-ai");
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const res = await model.generateContent(prompt);
   return res.response.text();
 }
