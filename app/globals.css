@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 250 100% 98%;
+}
+
+html, body, #__next {
+  height: 100%;
+}
+
+body {
+  @apply bg-purple-50 text-gray-900;
+}
+
+.container-max {
+  @apply mx-auto max-w-5xl px-4 sm:px-6 lg:px-8;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-soft border border-gray-100;
+}
+
+.input {
+  @apply w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400;
+}
+
+.btn {
+  @apply inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700 transition;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full bg-purple-100 text-purple-800 px-2 py-0.5 text-sm font-medium;
+}
