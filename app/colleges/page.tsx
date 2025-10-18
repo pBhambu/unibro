@@ -4,6 +4,7 @@ import Link from "next/link";
 import { v4 as uuid } from "uuid";
 
 import type { College } from "@/lib/models";
+import { collegesDB } from "@/lib/colleges-db";
 
 export default function CollegesPage() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -11,29 +12,7 @@ export default function CollegesPage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [showSuggest, setShowSuggest] = useState(false);
-  const allColleges = [
-    { name: "University of Washington", city: "Seattle", state: "Washington" },
-    { name: "Western Washington University", city: "Bellingham", state: "Washington" },
-    { name: "University of Illinois Urbana-Champaign", city: "Urbana-Champaign", state: "Illinois" },
-    { name: "Columbia University", city: "New York City", state: "New York" },
-    { name: "Harvard University", city: "Cambridge", state: "Massachusetts" },
-    { name: "Stanford University", city: "Stanford", state: "California" },
-    { name: "Massachusetts Institute of Technology", city: "Cambridge", state: "Massachusetts" },
-    { name: "Carnegie Mellon University", city: "Pittsburgh", state: "Pennsylvania" },
-    { name: "University of California, Berkeley", city: "Berkeley", state: "California" },
-    { name: "University of California, Los Angeles", city: "Los Angeles", state: "California" },
-    { name: "Princeton University", city: "Princeton", state: "New Jersey" },
-    { name: "Yale University", city: "New Haven", state: "Connecticut" },
-    { name: "Duke University", city: "Durham", state: "North Carolina" },
-    { name: "University of Michigan", city: "Ann Arbor", state: "Michigan" },
-    { name: "Georgia Institute of Technology", city: "Atlanta", state: "Georgia" },
-    { name: "Cornell University", city: "Ithaca", state: "New York" },
-    { name: "Brown University", city: "Providence", state: "Rhode Island" },
-    { name: "University of Texas at Austin", city: "Austin", state: "Texas" },
-    { name: "Purdue University", city: "West Lafayette", state: "Indiana" },
-    { name: "University of Southern California", city: "Los Angeles", state: "California" },
-  ];
-  const suggestions = name.length < 2 ? [] : allColleges.filter(c => c.name.toLowerCase().includes(name.toLowerCase())).slice(0, 8);
+  const suggestions = name.length < 2 ? [] : collegesDB.filter(c => c.name.toLowerCase().includes(name.toLowerCase())).slice(0, 10);
 
   const categoryFromPercent = (p?: number) => {
     if (typeof p !== "number") return undefined;

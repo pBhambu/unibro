@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geminiText } from "@/lib/gemini";
+import { AI_PERSONALITY } from "@/lib/ai-personality";
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt } = await req.json();
     const text = await geminiText(
-      `From the following pasted college application questions, produce a compact JSON array of fields where each field has: id (slug), label (string), type ('text' or 'textarea'). Keep labels short and clear. Only output JSON.\n\n${prompt}`
+      `${AI_PERSONALITY}\n\nFrom the following pasted college application questions, produce a compact JSON array of fields where each field has: id (slug), label (string), type ('text' or 'textarea'), optional (boolean). Keep labels short and clear. EXCLUDE questions already covered by Common App (GPA, SAT/ACT, AP tests, activities list, honors, additional info, main essay). Only output JSON.\n\n${prompt}`
     );
     try {
       const jsonStart = text.indexOf("[");
