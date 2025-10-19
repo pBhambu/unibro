@@ -1,12 +1,39 @@
 "use client";
 import { AutosaveInput, AutosaveTextArea } from "@/components/AutosaveField";
 import { ChatbotPanel } from "@/components/ChatbotPanel";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function ApplicationPage() {
   const [essayFeedback, setEssayFeedback] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  
+  // SAT score states
+  const [satMath, setSatMath] = useState("");
+  const [satReading, setSatReading] = useState("");
+  const [satTotal, setSatTotal] = useState("");
+  
+  // Load scores from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSatMath(localStorage.getItem('app.sat.math') || '');
+      setSatReading(localStorage.getItem('app.sat.reading') || '');
+    }
+  }, []);
+  
+  // Calculate SAT total
+  useEffect(() => {
+    const math = parseInt(satMath) || 0;
+    const reading = parseInt(satReading) || 0;
+    if (math > 0 || reading > 0) {
+      const total = math + reading;
+      setSatTotal(total.toString());
+      localStorage.setItem('app.sat.total', total.toString());
+    } else {
+      setSatTotal('');
+      localStorage.removeItem('app.sat.total');
+    }
+  }, [satMath, satReading]);
 
   const getFeedback = async () => {
     if (loading) return;
@@ -58,7 +85,59 @@ export default function ApplicationPage() {
         <div className="card p-6">
           <div className="text-xl font-semibold mb-4">Common App Sections</div>
           <div className="grid grid-cols-1 gap-4">
-            <AutosaveInput storageKey="app.sat" label="SAT / ACT" placeholder="1540 SAT" />
+            <div>
+              <div className="font-semibold mb-3">SAT Scores</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label className="block">
+                  <div className="mb-1 text-sm text-gray-600">SAT Math</div>
+                  <input 
+                    className="input" 
+                    value={satMath} 
+                    placeholder="780"
+                    type="number"
+                    min="200"
+                    max="800"
+                    onChange={(e) => {
+                      setSatMath(e.target.value);
+                      localStorage.setItem('app.sat.math', e.target.value);
+                    }} 
+                  />
+                </label>
+                <label className="block">
+                  <div className="mb-1 text-sm text-gray-600">SAT Reading & Writing</div>
+                  <input 
+                    className="input" 
+                    value={satReading} 
+                    placeholder="760"
+                    type="number"
+                    min="200"
+                    max="800"
+                    onChange={(e) => {
+                      setSatReading(e.target.value);
+                      localStorage.setItem('app.sat.reading', e.target.value);
+                    }} 
+                  />
+                </label>
+                <label className="block">
+                  <div className="mb-1 text-sm text-gray-600 flex items-center gap-2">
+                    <span>SAT Total</span>
+                    <span className="text-xs text-emerald-600">auto-calculated</span>
+                  </div>
+                  <input 
+                    className="input bg-gray-50 dark:bg-gray-800" 
+                    value={satTotal} 
+                    placeholder="1540"
+                    readOnly
+                  />
+                </label>
+              </div>
+            </div>
+            <div>
+              <div className="font-semibold mb-3">ACT Scores</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <AutosaveInput storageKey="app.act.composite" label="ACT Composite" placeholder="35" />
+              </div>
+            </div>
             <AutosaveTextArea storageKey="education.ap" label="AP Tests" placeholder="AP Calculus BC (5), AP Physics C (5), AP Computer Science A (5)" rows={3} />
             <AutosaveTextArea storageKey="education.activities" label="Activities" placeholder="List your major activities and roles" />
             <AutosaveTextArea storageKey="education.honors" label="Honors" placeholder="List 3-5 honors" />
