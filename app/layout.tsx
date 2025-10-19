@@ -20,6 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                if (localStorage.getItem('darkMode') === 'true') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            })();
+          `
+        }} />
       </head>
       <body className="min-h-screen bg-gradient-to-br from-white via-[#f8fff8] to-[#f0fff0] dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 font-['Poppins']">
         <AppShell>
