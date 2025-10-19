@@ -278,14 +278,15 @@ export default function CollegeEditorPage() {
     if (loadingChance) return;
     const profile = {
       gpa: commonAppUse.gpa ? localStorage.getItem("app.gpa") : null,
-      sat: commonAppUse.sat ? localStorage.getItem("app.sat") : null,
+      sat: commonAppUse.sat ? (localStorage.getItem("app.sat.total") || localStorage.getItem("app.sat")) : null,
+      satMath: commonAppUse.sat ? localStorage.getItem("app.sat.math") : null,
+      satReading: commonAppUse.sat ? localStorage.getItem("app.sat.reading") : null,
       ap: commonAppUse.ap ? localStorage.getItem("app.ap") : null,
       activities: commonAppUse.activities ? localStorage.getItem("app.activities") : null,
       honors: commonAppUse.honors ? localStorage.getItem("app.honors") : null,
       additional: commonAppUse.additional ? localStorage.getItem("app.additional") : null,
       essay: commonAppUse.essay ? localStorage.getItem("app.essay.main") : null,
-      majors: localStorage.getItem("profile.majors"),
-      extras: localStorage.getItem("profile.extras") || [
+      extras: [
         localStorage.getItem("profile.interests"),
         localStorage.getItem("profile.hobbies"),
         localStorage.getItem("profile.skills"),

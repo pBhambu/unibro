@@ -240,6 +240,17 @@ export function CounselorBro() {
     console.log('Speak called, isMuted:', isMuted, 'conversationMode:', conversationModeRef.current);
     if (isMuted) return;
     
+    // CRITICAL: Stop speech recognition before AI speaks to prevent echo loop
+    if (recognitionRef.current && isListening) {
+      console.log('Stopping speech recognition before AI speaks');
+      try {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      } catch (e) {
+        console.error('Error stopping recognition before speak:', e);
+      }
+    }
+    
     setAudioError(null);
     
     // Stop any ongoing audio
@@ -296,6 +307,7 @@ export function CounselorBro() {
         // Auto-restart listening only if in conversation mode
         if (conversationModeRef.current && recognitionRef.current && !isMuted) {
           console.log('Attempting to restart listening after audio ended');
+          // Increased delay to ensure audio has completely stopped and prevent echo
           setTimeout(() => {
             if (conversationModeRef.current && recognitionRef.current) {
               try {
@@ -306,15 +318,8 @@ export function CounselorBro() {
                 console.error('Failed to restart recognition:', e);
               }
             }
-          }, 500); // Small delay to ensure audio is fully stopped
+          }, 1000); // Increased from 500ms to 1000ms
         }
-      };
-      
-      audio.onerror = () => {
-        setIsSpeaking(false);
-        setAudioError('Audio playback failed');
-        URL.revokeObjectURL(audioUrl);
-        audioRef.current = null;
       };
       
       await audio.play().then(() => {
