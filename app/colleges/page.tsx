@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 
 import type { College } from "@/lib/models";
 import { collegesDB } from "@/lib/colleges-db";
+import { CollegeLogo } from "@/components/CollegeLogo";
 
 export default function CollegesPage() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -109,6 +110,36 @@ export default function CollegesPage() {
     localStorage.removeItem("colleges.form.state");
   };
 
+  const deleteCollege = (id: string) => {
+    if (!confirm("Delete this college? All associated data will be lost.")) return;
+    
+    // Remove from list
+    const updatedColleges = colleges.filter(c => c.id !== id);
+    setColleges(updatedColleges);
+    localStorage.setItem("colleges", JSON.stringify(updatedColleges));
+    
+    // Clean up all college-specific data
+    const keysToRemove = [
+      `college.${id}.fields`,
+      `college.${id}.answers`,
+      `college.${id}.prompt`,
+      `college.${id}.commonAppUse`,
+      `college.${id}.percent`
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  };
+
+  const editCollegeName = (id: string, currentName: string) => {
+    const newName = prompt("Edit college name:", currentName);
+    if (!newName || newName.trim() === currentName) return;
+    
+    const updatedColleges = colleges.map(c => 
+      c.id === id ? { ...c, name: newName.trim() } : c
+    );
+    setColleges(updatedColleges);
+    localStorage.setItem("colleges", JSON.stringify(updatedColleges));
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Left Column - Main Content */}
@@ -149,24 +180,45 @@ export default function CollegesPage() {
                 Reach: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-700'
               };
               return (
-                <li key={c.id} className="px-4 py-4 border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <Link href={`/colleges/${c.id}`} className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title">{c.name}</Link>
-                        {category && (
-                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${badgeColors[category]}`}>
-                            {category}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {[c.city, c.state].filter(Boolean).join(", ")}
+                <li key={c.id} className="px-4 py-4 border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition first:rounded-t-lg last:rounded-b-lg group">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <CollegeLogo name={c.name} website={c.website} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <Link href={`/colleges/${c.id}`} className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title truncate">{c.name}</Link>
+                          {category && (
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${badgeColors[category]}`}>
+                              {category}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {[c.city, c.state].filter(Boolean).join(", ")}
+                        </div>
                       </div>
                     </div>
-                    {typeof c.percent === 'number' && (
-                      <div className="text-2xl font-bold text-emerald-700 dark:text-amber-400 ml-4">{c.percent}%</div>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {typeof c.percent === 'number' && (
+                        <div className="text-2xl font-bold text-emerald-700 dark:text-amber-400">{c.percent}%</div>
+                      )}
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={(e) => { e.preventDefault(); editCollegeName(c.id, c.name); }}
+                          className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/60 transition"
+                          title="Edit name"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={(e) => { e.preventDefault(); deleteCollege(c.id); }}
+                          className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/60 transition"
+                          title="Delete"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </li>
               );

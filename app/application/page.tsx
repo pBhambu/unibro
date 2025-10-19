@@ -58,7 +58,6 @@ export default function ApplicationPage() {
         <div className="card p-6">
           <div className="text-xl font-semibold mb-4">Common App Sections</div>
           <div className="grid grid-cols-1 gap-4">
-            <AutosaveInput storageKey="education.grades.current" label="GPA" placeholder="3.9 unweighted" />
             <AutosaveInput storageKey="app.sat" label="SAT / ACT" placeholder="1540 SAT" />
             <AutosaveTextArea storageKey="education.ap" label="AP Tests" placeholder="AP Calculus BC (5), AP Physics C (5), AP Computer Science A (5)" rows={3} />
             <AutosaveTextArea storageKey="education.activities" label="Activities" placeholder="List your major activities and roles" />
@@ -121,7 +120,8 @@ export default function ApplicationPage() {
                       // Parse transcript and auto-fill courses
                       const coursesText = data.fields.find((f: any) => f.label.toLowerCase().includes('course'))?.label || 'Courses extracted from transcript';
                       localStorage.setItem('education.courses.current', coursesText);
-                      alert('Transcript parsed! Courses section updated.');
+                      // Force component to reload by triggering a page refresh
+                      window.location.reload();
                     } else {
                       alert('Failed to parse transcript: ' + (data.error || 'Unknown error'));
                     }

@@ -1,14 +1,38 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function ChatbotPanel({ context }: { context?: any }) {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   
+  // Generate a unique storage key based on the page context
+  const storageKey = `chat.${context?.page || 'default'}${context?.college ? '.' + context.college : ''}`;
+  
+  // Load messages from localStorage on mount and when storage key changes
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        setMessages(JSON.parse(saved));
+      } catch {}
+    } else {
+      // Clear messages if no saved data for this key
+      setMessages([]);
+    }
+  }, [storageKey]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    }
+  }, [messages, storageKey]);
+  
   const clearConversation = () => {
     if (confirm('Clear this conversation?')) {
       setMessages([]);
+      localStorage.removeItem(storageKey);
     }
   };
 
@@ -52,7 +76,8 @@ export function ChatbotPanel({ context }: { context?: any }) {
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
-      const text = res.ok ? (data.text || "") : "I'm having trouble responding right now.";
+      // Show the actual error message from the API, not a generic fallback
+      const text = data.text || data.error || "I'm having trouble responding right now.";
       setMessages((m) => [...m, { role: "assistant", content: text }]);
       
       // Check if assistant wants to edit the plan

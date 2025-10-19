@@ -181,15 +181,17 @@ export default function CounselorBroPage() {
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
-      const text = res.ok ? (data.text || "") : "I'm having trouble responding right now.";
+      // Show the actual error message from the API, not a generic fallback
+      const text = data.text || data.error || "I'm having trouble responding right now.";
       setMessages((m) => [...m, { role: "assistant", content: text }]);
-      if (conversationActive && voiceEnabled && text) {
+      if (conversationActive && voiceEnabled && text && !text.includes("Rate Limit") && !text.includes("Error")) {
         await playAudio(text);
       }
     } catch (e: any) {
+      const errorMsg = e.message || "I couldn't respond right now. Please try again.";
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "I couldn't respond right now. Please try again." },
+        { role: "assistant", content: errorMsg },
       ]);
     } finally {
       setLoading(false);
@@ -220,8 +222,8 @@ export default function CounselorBroPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="card p-6 mb-6">
+    <div className="max-w-4xl mx-auto h-[calc(100vh-2rem)] flex flex-col">
+      <div className="card p-6 mb-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="text-2xl font-bold text-green-700 dark:text-green-400 font-title">CounselorBro</div>
@@ -262,7 +264,7 @@ export default function CounselorBroPage() {
         </div>
       </div>
 
-      <div className="card h-[calc(100vh-16rem)] flex flex-col overflow-hidden">
+      <div className="card flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.length === 0 && (
             <div className="text-center text-gray-500 mt-12">

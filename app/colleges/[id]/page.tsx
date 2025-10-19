@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ChatbotPanel } from "@/components/ChatbotPanel";
 
@@ -13,6 +13,7 @@ export default function CollegeEditorPage() {
   const [percent, setPercent] = useState<number | null>(null);
   const [loadingFields, setLoadingFields] = useState(false);
   const [loadingChance, setLoadingChance] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const abortFieldsRef = useRef<AbortController | null>(null);
   const abortChanceRef = useRef<AbortController | null>(null);
   const [commonAppUse, setCommonAppUse] = useState({
@@ -37,6 +38,8 @@ export default function CollegeEditorPage() {
       if (typeof window === 'undefined') return;
       
       try {
+        console.log(`Loading data for college ${id}`);
+        
         // Load college name from the main colleges list
         const list = JSON.parse(localStorage.getItem("colleges") || "[]");
         const college = list.find((x: any) => x.id === id);
@@ -50,13 +53,35 @@ export default function CollegeEditorPage() {
 
         // Load all other college-specific data
         const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
-          const saved = localStorage.getItem(`college.${id}.${key}`);
-          return saved ? JSON.parse(saved) : defaultValue;
+          try {
+            const saved = localStorage.getItem(`college.${id}.${key}`);
+            if (!saved) {
+              console.log(`No saved data for ${key}, using default`);
+              return defaultValue;
+            }
+            // Special handling for prompt (stored as plain string, not JSON)
+            if (key === 'prompt') return saved as T;
+            const parsed = JSON.parse(saved);
+            console.log(`Loaded ${key}:`, parsed);
+            return parsed;
+          } catch (e) {
+            console.error(`Error loading ${key}:`, e);
+            return defaultValue;
+          }
         };
 
-        setFields(loadFromStorage('fields', []));
-        setAnswers(loadFromStorage('answers', {}));
-        setPrompt(loadFromStorage('prompt', ''));
+        const loadedFields = loadFromStorage('fields', []);
+        const loadedAnswers = loadFromStorage('answers', {});
+        
+        console.log(`Setting fields:`, loadedFields);
+        console.log(`Setting answers:`, loadedAnswers);
+        
+        setFields(loadedFields);
+        setAnswers(loadedAnswers);
+        
+        const savedPrompt = localStorage.getItem(`college.${id}.prompt`);
+        if (savedPrompt) setPrompt(savedPrompt);
+        
         setCommonAppUse(loadFromStorage('commonAppUse', {
           gpa: true, sat: true, ap: true, activities: true, 
           honors: true, additional: true, essay: true
@@ -64,12 +89,19 @@ export default function CollegeEditorPage() {
         
         const savedPercent = localStorage.getItem(`college.${id}.percent`);
         if (savedPercent) setPercent(parseInt(savedPercent));
+        
+        // Mark data as loaded
+        setDataLoaded(true);
 
       } catch (error) {
         console.error("Error loading college data:", error);
+        setDataLoaded(true);
       }
     };
 
+    // Reset dataLoaded when ID changes
+    setDataLoaded(false);
+    
     // Load data immediately
     loadCollegeData();
 
@@ -102,37 +134,44 @@ export default function CollegeEditorPage() {
   }, [id]);
 
   // Save data to localStorage when it changes
-  const saveToStorage = (key: string, value: any) => {
+  const saveToStorage = useCallback((key: string, value: any) => {
     if (typeof window === 'undefined') return;
     try {
       const storageKey = `college.${id}.${key}`;
       localStorage.setItem(storageKey, JSON.stringify(value));
-      // Trigger storage event for other tabs
-      window.dispatchEvent(new StorageEvent('storage', { key: storageKey, newValue: JSON.stringify(value) }));
+      // Note: Browser automatically fires storage events to OTHER tabs
+      // We don't dispatch manually to avoid infinite loops in the same tab
     } catch (error) {
       console.error(`Error saving ${key}:`, error);
     }
-  };
+  }, [id]);
 
-  // Save fields when they change
-  useEffect(() => { saveToStorage('fields', fields); }, [id, fields]);
+  // Save fields when they change (but only after initial data load)
+  useEffect(() => { 
+    if (dataLoaded && (fields.length > 0 || Object.keys(answers).length > 0)) {
+      console.log('Saving fields:', fields);
+      saveToStorage('fields', fields); 
+    }
+  }, [id, fields, saveToStorage, answers, dataLoaded]);
   
-  // Save answers when they change
-  useEffect(() => { saveToStorage('answers', answers); }, [id, answers]);
+  // Save answers when they change (but only after initial data load)
+  useEffect(() => { 
+    if (dataLoaded && (Object.keys(answers).length > 0 || fields.length > 0)) {
+      console.log('Saving answers:', answers);
+      saveToStorage('answers', answers); 
+    }
+  }, [id, answers, saveToStorage, fields, dataLoaded]);
   
   // Save prompt when it changes
   useEffect(() => { 
     if (typeof window !== 'undefined') {
       localStorage.setItem(`college.${id}.prompt`, prompt);
-      window.dispatchEvent(new StorageEvent('storage', { 
-        key: `college.${id}.prompt`, 
-        newValue: prompt 
-      }));
+      // Browser automatically fires storage events to OTHER tabs
     }
   }, [id, prompt]);
   
   // Save common app settings when they change
-  useEffect(() => { saveToStorage('commonAppUse', commonAppUse); }, [id, commonAppUse]);
+  useEffect(() => { saveToStorage('commonAppUse', commonAppUse); }, [id, commonAppUse, saveToStorage]);
   
   // Save percent to both the college object and its own key
   useEffect(() => {
@@ -151,10 +190,7 @@ export default function CollegeEditorPage() {
         const updated = [...list];
         updated[idx] = { ...updated[idx], percent };
         localStorage.setItem("colleges", JSON.stringify(updated));
-        window.dispatchEvent(new StorageEvent('storage', { 
-          key: 'colleges', 
-          newValue: JSON.stringify(updated) 
-        }));
+        // Browser automatically fires storage events to OTHER tabs
       }
     } catch (error) {
       console.error("Error updating college percent:", error);
@@ -167,9 +203,6 @@ export default function CollegeEditorPage() {
       setLoadingFields(true);
       abortFieldsRef.current = new AbortController();
       const apiKey = localStorage.getItem('geminiApiKey') || undefined;
-      
-      // Save the current prompt first
-      saveToStorage('prompt', prompt);
       
       const res = await fetch("/api/gemini/questions", { 
         method: "POST", 
@@ -184,32 +217,40 @@ export default function CollegeEditorPage() {
       if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
       
       const generatedFields = Array.isArray(data.fields) ? data.fields : [];
-      setFields(generatedFields);
       
-      // Save fields immediately
-      saveToStorage('fields', generatedFields);
-      
-      // Parse answers from the prompt if possible
+      // Parse answers from the prompt if possible (only if there's actual content after the question)
       const newAnswers: Record<string,string> = {};
       generatedFields.forEach((f: any) => {
         const labelEscaped = f.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // Only try to extract answers if the prompt contains the label followed by a colon or newline and substantial text
+        // Pattern: "Label: <answer text>" or "Label\n<answer text that's clearly an answer, not another question>"
         const patterns = [
-          new RegExp(labelEscaped + '[\\s\\S]*?[:\\n]\\s*([\\s\\S]{20,1000}?)(?=\\n\\n|\\n[A-Z]|$)', 'i'),
-          new RegExp(labelEscaped + '.*?[:\\n]\\s*(.{20,800}?)(?=\\n\\n|$)', 'is'),
-          new RegExp('(?:' + labelEscaped + ').*?\\n\\s*(.{15,600}?)(?=\\n\\n|\\n\\d|$)', 'is'),
+          // Match "Label: <text>" where text is substantial and doesn't look like another question
+          new RegExp(labelEscaped + '\\s*:\\s*([^\\n]{50,1000})', 'i'),
+          // Match "Label\n<paragraph>" where paragraph is 100+ chars and doesn't start with common question words
+          new RegExp(labelEscaped + '\\s*\\n\\s*(?![Ww]hy|[Hh]ow|[Ww]hat|[Dd]escribe|[Ee]xplain|[Dd]iscuss)([^\\n]{100,1000})', 'i'),
         ];
+        
         for (const pattern of patterns) {
           const match = prompt.match(pattern);
-          if (match && match[1] && match[1].trim().length > 15) {
-            newAnswers[f.id] = match[1].trim().replace(/^[:\-\s]+/, '');
-            break;
+          if (match && match[1]) {
+            const potentialAnswer = match[1].trim();
+            // Only use it if it's substantial and doesn't look like another field label
+            if (potentialAnswer.length > 50 && 
+                !potentialAnswer.toLowerCase().includes('essay') &&
+                !potentialAnswer.toLowerCase().includes('statement') &&
+                !potentialAnswer.toLowerCase().includes('information')) {
+              newAnswers[f.id] = potentialAnswer.replace(/^[:\-\s]+/, '');
+              break;
+            }
           }
         }
       });
       
-      // Update answers and save them
+      // Update state - useEffect hooks will handle saving to localStorage
+      setFields(generatedFields);
       setAnswers(newAnswers);
-      saveToStorage('answers', newAnswers);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
         setFields([]);
@@ -282,7 +323,7 @@ export default function CollegeEditorPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
-        <div className="card p-6">
+        <div className="card p-6 sticky top-0 z-20 bg-white dark:bg-gray-900 shadow-md">
           <div className="flex items-center justify-between">
             <div className="text-xl font-semibold">{name || "College"}</div>
             {typeof percent === 'number' && (
@@ -317,6 +358,7 @@ export default function CollegeEditorPage() {
               const res = await fetch('/api/gemini/questions-pdf', { method: 'POST', body: formData });
               const data = await res.json();
               if (data.fields) {
+                // Update state - useEffect hooks will handle saving to localStorage
                 setFields(data.fields);
                 setAnswers({});
               } else {

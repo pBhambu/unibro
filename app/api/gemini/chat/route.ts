@@ -12,6 +12,22 @@ export async function POST(req: NextRequest) {
     const text = await geminiText(prompt, apiKey);
     return NextResponse.json({ text, provider: hasGemini() ? "gemini" : "mock" });
   } catch (err: any) {
-    return NextResponse.json({ text: "I'm having trouble responding right now.", error: "chat_failed" });
+    console.error("Chat API error:", err);
+    
+    // Pass through the actual error message from Gemini
+    const errorMessage = err.message || "Unknown error";
+    
+    // Determine status code
+    let status = 500;
+    if (errorMessage.includes("Rate Limit") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+      status = 429;
+    } else if (errorMessage.includes("Invalid API Key") || errorMessage.includes("API_KEY_INVALID")) {
+      status = 401;
+    }
+    
+    return NextResponse.json({ 
+      text: errorMessage, 
+      error: errorMessage 
+    }, { status });
   }
 }

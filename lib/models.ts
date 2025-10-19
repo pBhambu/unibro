@@ -5,6 +5,7 @@ export type College = {
   state?: string;
   category?: "Reach" | "Target" | "Safety";
   percent?: number;
+  website?: string;
 };
 
 export type CollegeQuestion = {

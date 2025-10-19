@@ -6,10 +6,26 @@ function useAutosave(key: string, initial = "") {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const initialLoadRef = useRef(true);
   
+  // Load from localStorage on mount and when key changes
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
     setValue(saved ?? initial);
-  }, [key, initial]);
+    // Reset the initialLoadRef when key changes so we don't save immediately after loading
+    initialLoadRef.current = true;
+  }, [key]);
+
+  // Listen for storage events to sync when localStorage is updated externally
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === key && e.newValue !== null) {
+        setValue(e.newValue);
+        initialLoadRef.current = true; // Don't save immediately after external update
+      }
+    };
+    
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [key]);
 
   useEffect(() => {
     if (initialLoadRef.current) {
