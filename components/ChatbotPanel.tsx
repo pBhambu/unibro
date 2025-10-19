@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from 'react-dom';
 
 export function ChatbotPanel({ context }: { context?: any }) {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
@@ -110,41 +111,61 @@ export function ChatbotPanel({ context }: { context?: any }) {
     }
   };
 
+  useEffect(() => {
+    // Move the chat panel to the container
+    const chatContainer = document.getElementById('chat-container');
+    const panel = document.getElementById('chat-panel');
+    
+    if (chatContainer && panel) {
+      chatContainer.appendChild(panel);
+    }
+    
+    return () => {
+      if (chatContainer && panel && panel.parentNode === chatContainer) {
+        chatContainer.removeChild(panel);
+      }
+    };
+  }, []);
+
   return (
-    <div className="card sticky top-4 h-[calc(100vh-2rem)] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
-      {/* Header */}
-      <div className="font-semibold p-4 border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm z-10 flex items-center justify-between">
-        <span className="text-gray-900 dark:text-gray-100">Assistant</span>
-        {messages.length > 0 && (
-          showClearConfirm ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 dark:text-gray-400">Clear chat?</span>
+    <div 
+      id="chat-panel"
+      className="w-80 md:w-72 h-[400px] md:h-[500px] max-h-[calc(100vh-2rem)] flex flex-col shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+    >
+      <div className="h-full overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-xl">
+        {/* Header - more compact */}
+        <div className="border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm p-2 md:p-3 flex items-center justify-between">
+          <div className="font-medium">AI Assistant</div>
+          {messages.length > 0 && (
+            showClearConfirm ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Clear chat?</span>
+                <button 
+                  onClick={clearConversation} 
+                  className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 rounded transition-colors"
+                >
+                  Yes
+                </button>
+                <button 
+                  onClick={() => setShowClearConfirm(false)} 
+                  className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
+                >
+                  No
+                </button>
+              </div>
+            ) : (
               <button 
-                onClick={clearConversation} 
-                className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 rounded transition-colors"
+                onClick={() => setShowClearConfirm(true)} 
+                className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
               >
-                Yes
+                Clear
               </button>
-              <button 
-                onClick={() => setShowClearConfirm(false)} 
-                className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
-              >
-                No
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => setShowClearConfirm(true)} 
-              className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-            >
-              Clear
-            </button>
-          )
-        )}
-      </div>
+            )
+          )}
+        </div>
       
-      {/* Messages container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      {/* Messages container - more compact */}
+      <div className="flex-1 overflow-y-auto p-2 space-y-1 text-sm" style={{ maxHeight: 'calc(100% - 120px)' }}>
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-center p-6">
             <div>
@@ -189,13 +210,13 @@ export function ChatbotPanel({ context }: { context?: any }) {
         )}
       </div>
       
-      {/* Input area - always visible at the bottom */}
-      <div className="border-t border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm p-4">
+      {/* Input area - more compact */}
+      <div className="border-t border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 p-2">
         <div className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
               className="w-full min-h-[44px] max-h-32 py-2.5 px-4 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-              placeholder="Ask for help or feedback..."
+              placeholder="Type a message..."
               rows={1}
               value={input}
               onChange={(e) => {
@@ -234,6 +255,7 @@ export function ChatbotPanel({ context }: { context?: any }) {
               </svg>
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

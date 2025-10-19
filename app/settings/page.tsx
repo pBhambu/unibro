@@ -7,16 +7,19 @@ export default function SettingsPage() {
   const [customPersonality, setCustomPersonality] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [elevenlabsApiKey, setElevenlabsApiKey] = useState("");
+  const [elevenlabsVoiceId, setElevenlabsVoiceId] = useState("");
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
     const savedPersonality = localStorage.getItem("customPersonality") || "";
     const savedGeminiKey = localStorage.getItem("geminiApiKey") || "";
     const savedElevenlabsKey = localStorage.getItem("elevenlabsApiKey") || "";
+    const savedVoiceId = localStorage.getItem("settings.elevenlabsVoiceId") || "";
     setDarkMode(savedDarkMode);
     setCustomPersonality(savedPersonality);
     setGeminiApiKey(savedGeminiKey);
     setElevenlabsApiKey(savedElevenlabsKey);
+    setElevenlabsVoiceId(savedVoiceId);
     
     if (savedDarkMode) {
       document.documentElement.classList.add("dark");
@@ -47,7 +50,9 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
       <div className="card p-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-title">Settings</h1>
         <p className="text-gray-600 dark:text-gray-400">Customize your UniBro experience</p>
@@ -145,22 +150,44 @@ export default function SettingsPage() {
                 Get your key from <a href="https://elevenlabs.io" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">ElevenLabs</a>
               </div>
             </label>
+            <label className="block">
+              <div className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                ElevenLabs Voice ID (optional)
+              </div>
+              <input
+                type="text"
+                className="input font-mono text-sm"
+                placeholder="e.g., 21m00Tcm4TlvDq8ikWAM"
+                value={elevenlabsVoiceId}
+                onChange={(e) => setElevenlabsVoiceId(e.target.value)}
+              />
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Custom voice ID for text-to-speech. Leave blank to use default voice (Rachel).
+              </div>
+            </label>
             <div className="flex gap-2">
               <button onClick={() => {
                 localStorage.setItem("geminiApiKey", geminiApiKey);
                 localStorage.setItem("elevenlabsApiKey", elevenlabsApiKey);
-                alert("API keys saved!");
+                if (elevenlabsVoiceId) {
+                  localStorage.setItem("settings.elevenlabsVoiceId", elevenlabsVoiceId);
+                } else {
+                  localStorage.removeItem("settings.elevenlabsVoiceId");
+                }
+                alert("Settings saved!");
               }} className="btn">
-                Save API Keys
+                Save Settings
               </button>
               <button onClick={() => {
                 setGeminiApiKey("");
                 setElevenlabsApiKey("");
+                setElevenlabsVoiceId("");
                 localStorage.removeItem("geminiApiKey");
                 localStorage.removeItem("elevenlabsApiKey");
-                alert("API keys cleared!");
+                localStorage.removeItem("settings.elevenlabsVoiceId");
+                alert("Settings cleared!");
               }} className="btn-secondary">
-                Clear Keys
+                Clear Settings
               </button>
             </div>
           </div>
@@ -175,6 +202,8 @@ export default function SettingsPage() {
           <p className="pt-2 border-t border-gray-200 dark:border-gray-700">
             Built with Next.js, Tailwind CSS, Google Gemini AI, and ElevenLabs
           </p>
+        </div>
+      </div>
         </div>
       </div>
     </div>

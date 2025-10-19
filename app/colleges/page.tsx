@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { v4 as uuid } from "uuid";
+import { createPortal } from 'react-dom';
 
 import type { College } from "@/lib/models";
 import { collegesDB } from "@/lib/colleges-db";
@@ -15,7 +16,50 @@ export default function CollegesPage() {
   const [showSuggest, setShowSuggest] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const suggestions = name.length < 2 ? [] : collegesDB.filter(c => c.name.toLowerCase().includes(name.toLowerCase())).slice(0, 10);
+  
+  // Calculate dropdown position
+  useEffect(() => {
+    if (showSuggest && inputRef.current) {
+      const updatePosition = () => {
+        const rect = inputRef.current?.getBoundingClientRect();
+        if (rect) {
+          setDropdownPosition({
+            top: rect.bottom + window.scrollY,
+            left: rect.left + window.scrollX,
+            width: rect.width
+          });
+        }
+      };
+      
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
+      
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+      };
+    }
+  }, [showSuggest, name]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node) &&
+          dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowSuggest(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const categoryFromPercent = (p?: number) => {
     if (typeof p !== "number") return undefined;
@@ -94,11 +138,13 @@ export default function CollegesPage() {
 
   const addCollege = () => {
     if (!name.trim()) return;
+    console.log('Adding college with id:', uuid(), 'name:', name);
     const newCollege = { id: uuid(), name, city, state, percent: undefined };
     const updatedColleges = [newCollege, ...colleges];
     setColleges(updatedColleges);
     // Save to localStorage immediately
     localStorage.setItem("colleges", JSON.stringify(updatedColleges));
+    console.log('Saved colleges:', updatedColleges);
     
     // Reset form
     setName(""); 
@@ -156,32 +202,60 @@ export default function CollegesPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column - Main Content */}
-      <div className="lg:col-span-2 space-y-6">
-        <div className="card p-4 relative z-20">
-          <div className="font-semibold mb-2">Add College</div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <div className="relative sm:col-span-2">
-              <input className="input w-full" placeholder="Name" value={name}
-                onFocus={()=>setShowSuggest(true)}
-                onChange={(e)=>{ setName(e.target.value); setShowSuggest(true); }} />
-              {showSuggest && suggestions.length > 0 && (
-                <ul className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
-                  {suggestions.map((s, i)=> (
-                    <li key={i} className="px-3 py-2 hover:bg-emerald-50 dark:hover:bg-amber-900/20 cursor-pointer"
-                      onMouseDown={()=>{ setName(s.name); setCity(s.city); setState(s.state); setShowSuggest(false); }}>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{s.name}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">{s.city}, {s.state}</div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="relative z-20">
+          <div className="card p-4">
+            <div className="font-semibold mb-2">Add College</div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input 
+                  ref={inputRef}
+                  className="input w-full" 
+                  placeholder="College Name" 
+                  value={name}
+                  onFocus={() => setShowSuggest(true)}
+                  onChange={(e) => { 
+                    setName(e.target.value); 
+                    setShowSuggest(true); 
+                  }} 
+                />
+                {showSuggest && suggestions.length > 0 && createPortal(
+                  <div 
+                    ref={dropdownRef}
+                    className="fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-60 overflow-auto"
+                    style={{
+                      top: `${dropdownPosition.top}px`,
+                      left: `${dropdownPosition.left}px`,
+                      width: `${Math.max(dropdownPosition.width, 300)}px`
+                    }}
+                  >
+                    {suggestions.map((s, index) => (
+                      <div
+                        key={`${s.name}-${s.city}-${s.state}-${index}`}
+                        className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
+                        onClick={() => {
+                          setName(s.name);
+                          setCity(s.city);
+                          setState(s.state);
+                          setShowSuggest(false);
+                        }}
+                      >
+                        <CollegeLogo name={s.name} className="w-6 h-6 mr-3 flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">{s.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{s.city}, {s.state}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>,
+                  document.body
+                )}
+              </div>
+              <button className="btn whitespace-nowrap" onClick={addCollege}>Add College</button>
             </div>
-            <input className="input" placeholder="City" value={city} onChange={(e)=>setCity(e.target.value)} />
-            <input className="input" placeholder="State" value={state} onChange={(e)=>setState(e.target.value)} />
           </div>
-          <div className="mt-3"><button className="btn" onClick={addCollege}>Add</button></div>
         </div>
 
         <div className="card p-0">
@@ -219,7 +293,13 @@ export default function CollegesPage() {
                         ) : (
                           <>
                             <div className="flex items-center gap-3 flex-wrap">
-                              <Link href={`/colleges/${c.id}`} className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title truncate">{c.name}</Link>
+                              <Link 
+                                href={`/colleges/${c.id}`} 
+                                className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title truncate"
+                                onClick={() => console.log('Navigating to college:', c.id, c.name)}
+                              >
+                                {c.name}
+                              </Link>
                               {category && (
                                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${badgeColors[category]}`}>
                                   {category}
@@ -269,17 +349,6 @@ export default function CollegesPage() {
             )}
           </ul>
         </div>
-      </div>
-
-      {/* Right Column - Tips Section */}
-      <div className="lg:col-span-1">
-        <div className="card p-4 sticky top-6">
-          <div className="font-semibold mb-2">Tips</div>
-          <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-            <p>• Click a college to answer its specific questions and see a realistic chance estimate.</p>
-            <p>• Add your safety, target, and reach schools to build a balanced college list.</p>
-            <p>• Use the chance estimator to get a realistic assessment of your admission odds.</p>
-          </div>
         </div>
       </div>
     </div>

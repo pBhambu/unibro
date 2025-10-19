@@ -24,12 +24,9 @@ export default function Page() {
             <Link href="/plan" className="text-sm font-medium text-gray-800 hover:text-[#31BD01] dark:text-gray-200 dark:hover:text-[#5ae02a] transition-all hover:scale-105">
               My Plan
             </Link>
-            <Link href="/counselor" className="text-sm font-medium text-gray-700 hover:text-[#31BD01] dark:text-gray-300 dark:hover:text-[#5ae02a] transition-colors">
-              Counselor
-            </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/application" className="px-5 py-2.5 text-sm rounded-xl bg-white/90 backdrop-blur-sm border-2 border-[#31BD01] hover:bg-[#f0fff0] text-[#31BD01] font-semibold transition-all hover:scale-105 shadow-sm hover:shadow-md">
+            <Link href="/application" className="px-5 py-2.5 text-sm rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2 border-[#31BD01] hover:bg-[#f0fff0] dark:hover:bg-gray-700 text-[#31BD01] dark:text-[#5ae02a] font-semibold transition-all hover:scale-105 shadow-sm hover:shadow-md">
               Log in
             </Link>
             <Link 
@@ -79,7 +76,7 @@ export default function Page() {
           <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#31BD01]/10 rounded-full mix-blend-multiply filter blur-3xl"></div>
           <div className="relative">
             <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 bg-gradient-to-r from-[#31BD01] to-[#2bd600] bg-clip-text text-transparent">
-              Your College Application Copilot
+              Your College Admissions Copilot
             </h1>
             <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
               Plan, write, and refine your applications with an AI assistant designed for students.
@@ -93,25 +90,11 @@ export default function Page() {
             <div className="relative z-10">
               <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Plan</h3>
-              <p className="text-gray-600 dark:text-gray-300">Create a timeline and stay on track with your college applications.</p>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </div>
-          
-          <div className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 dark:border-gray-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#31BD01]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Write</h3>
-              <p className="text-gray-600 dark:text-gray-300">Craft compelling essays with AI-powered writing assistance and feedback.</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">1. Get Writing</h3>
+              <p className="text-gray-600 dark:text-gray-300">Craft compelling applications with a hands-off, AI-feedback-powered writing assistant.</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
@@ -121,11 +104,25 @@ export default function Page() {
             <div className="relative z-10">
               <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Decide</h3>
-              <p className="text-gray-600 dark:text-gray-300">Get personalized college recommendations based on your profile and preferences.</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">2. Chance Me</h3>
+              <p className="text-gray-600 dark:text-gray-300">Learn your real admissions chances based on your full applicant profile, analyzed by AI.</p>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          
+          <div className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 dark:border-gray-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#31BD01]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">3. Game Plan</h3>
+              <p className="text-gray-600 dark:text-gray-300">Create a time-based comprehensive plan to maximize your admissions chances, with personalized and nearby opportunitiy suggestions.</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>

@@ -5,9 +5,10 @@ interface CollegeLogoProps {
   name: string;
   website?: string;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
-export function CollegeLogo({ name, website, size = "md" }: CollegeLogoProps) {
+export function CollegeLogo({ name, website, size = "md", className = "" }: CollegeLogoProps) {
   const [useFallback, setUseFallback] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   
@@ -102,22 +103,25 @@ export function CollegeLogo({ name, website, size = "md" }: CollegeLogoProps) {
   
   if (useFallback || !domain) {
     return (
-      <img 
-        src={fallbackUrl} 
-        alt={name}
-        className={`${sizeClasses[size]} rounded-lg object-cover flex-shrink-0`}
-      />
+      <div className={`relative flex-shrink-0 ${sizeClasses[size]} rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden ${className}`}>
+        <img 
+          src={fallbackUrl} 
+          alt={name}
+        />
+      </div>
     );
   }
   
   // Try favicon directly (simpler approach)
   return (
-    <img 
-      src={faviconUrl || fallbackUrl}
-      alt={name}
-      className={`${sizeClasses[size]} rounded-lg object-cover flex-shrink-0`}
-      onLoad={handleImageLoad}
-      onError={() => setUseFallback(true)}
-    />
+    <div className={`relative flex-shrink-0 ${sizeClasses[size]} rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden ${className}`}>
+      <img 
+        src={faviconUrl || fallbackUrl}
+        alt={name}
+        onLoad={handleImageLoad}
+        onError={() => setUseFallback(true)}
+        className="w-full h-full object-cover"
+      />
+    </div>
   );
 }

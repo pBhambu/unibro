@@ -1,6 +1,5 @@
 "use client";
 import { AutosaveInput, AutosaveTextArea } from "@/components/AutosaveField";
-import { ChatbotPanel } from "@/components/ChatbotPanel";
 import { useState, useRef, useEffect } from "react";
 
 export default function ApplicationPage() {
@@ -12,12 +11,17 @@ export default function ApplicationPage() {
   const [satMath, setSatMath] = useState("");
   const [satReading, setSatReading] = useState("");
   const [satTotal, setSatTotal] = useState("");
+  const feedbackRef = useRef<HTMLDivElement>(null);
   
-  // Load scores from localStorage on mount
+  // Load scores and essay feedback from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSatMath(localStorage.getItem('app.sat.math') || '');
       setSatReading(localStorage.getItem('app.sat.reading') || '');
+      const savedFeedback = localStorage.getItem('app.essay.feedback');
+      if (savedFeedback) {
+        setEssayFeedback(savedFeedback);
+      }
     }
   }, []);
   
@@ -51,7 +55,13 @@ export default function ApplicationPage() {
       let data: any = {};
       try { data = bodyText ? JSON.parse(bodyText) : {}; } catch { data = {}; }
       if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
-      setEssayFeedback(data.text || "No feedback returned.");
+      const feedback = data.text || "No feedback returned.";
+      setEssayFeedback(feedback);
+      localStorage.setItem('app.essay.feedback', feedback);
+      // Scroll to feedback after a short delay to ensure it's rendered
+      setTimeout(() => {
+        feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
         setEssayFeedback("I couldn't load feedback right now. Please try again.");
@@ -114,10 +124,9 @@ export default function ApplicationPage() {
                   />
                 </div>
                 <div className="card p-4 flex flex-col">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SAT Total</label>
-                  <div className="w-full h-12 flex items-center px-3 bg-white/80 dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-gray-100 text-lg font-medium">{satTotal || '—'}</span>
-                    <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">auto-calculated</span>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">SAT Total</label>
+                  <div className="w-full h-12 flex items-center px-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-700 dark:text-gray-300 text-lg font-medium">{satTotal || '—'}</span>
                   </div>
                 </div>
             </div>
@@ -170,8 +179,13 @@ export default function ApplicationPage() {
             </div>
 
             <div>
-              <div className="font-semibold mb-3">Current or Most Recent Year Courses</div>
-              <AutosaveTextArea storageKey="education.courses.current" label="Current year courses" placeholder="List current year courses with grades if available" rows={6} />
+              <div className="font-semibold mb-3">All Courses & Grades</div>
+              <div className="space-y-4">
+                <AutosaveTextArea storageKey="education.courses.grade9" label="9th Grade Courses & Grades" placeholder="e.g., Algebra I (A), English 9 (A-), Biology (B+)" rows={4} />
+                <AutosaveTextArea storageKey="education.courses.grade10" label="10th Grade Courses & Grades" placeholder="e.g., Geometry (A), World History (A), Chemistry (A-)" rows={4} />
+                <AutosaveTextArea storageKey="education.courses.grade11" label="11th Grade Courses & Grades" placeholder="e.g., AP Calculus AB (A), AP US History (A), AP Chemistry (B+)" rows={4} />
+                <AutosaveTextArea storageKey="education.courses.grade12" label="12th Grade Courses & Grades" placeholder="e.g., AP Calculus BC (A), AP Literature (A-), AP Physics C (A)" rows={4} />
+              </div>
               <div className="mt-3">
                 <div className="text-sm text-gray-600 mb-2">Or upload transcript PDF:</div>
                 <input type="file" accept=".pdf" className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200" onChange={async (e) => {
@@ -214,15 +228,13 @@ export default function ApplicationPage() {
           </div>
           <AutosaveTextArea storageKey="app.essay.main" label="Essay Draft" rows={14} placeholder="Paste or write your essay here" />
           {essayFeedback && (
-            <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg text-sm prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: essayFeedback.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\n/g, '<br/>') }} />
+            <div ref={feedbackRef} className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg text-sm prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: essayFeedback.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\n/g, '<br/>') }} />
           )}
         </div>
       </div>
 
         </div>
-        <div className="lg:col-span-1">
-          <ChatbotPanel context={{ page: "application" }} />
-        </div>
+        {/* Chat functionality is now handled by the global CounselorBro component */}
       </div>
     </div>
   );

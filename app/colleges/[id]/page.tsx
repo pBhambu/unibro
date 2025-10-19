@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { ChatbotPanel } from "@/components/ChatbotPanel";
 import { CollegeLogo } from "@/components/CollegeLogo";
 
 export default function CollegeEditorPage() {
@@ -491,9 +490,7 @@ export default function CollegeEditorPage() {
         )}
       </div>
 
-      <div className="lg:col-span-1">
-        <ChatbotPanel context={{ page: "college", college: name, answers }} />
-      </div>
+      {/* Chat functionality is now handled by the global CounselorBro component */}
     </div>
   );
 }

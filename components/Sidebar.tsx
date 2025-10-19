@@ -10,8 +10,8 @@ const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; ico
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition w-full hover:bg-emerald-50 dark:hover:bg-amber-900/20 ${
-        active ? "bg-emerald-100 dark:bg-amber-900/40 text-emerald-800 dark:text-amber-200" : "text-gray-700 dark:text-gray-200"
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition w-full hover:bg-emerald-50 dark:hover:bg-emerald-900/20 ${
+        active ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-100" : "text-gray-700 dark:text-gray-200"
       }`}
     >
       <Icon size={20} />
@@ -38,7 +38,6 @@ export function Sidebar() {
         <NavItem href="/application" label="Application" icon={Pencil} />
         <NavItem href="/colleges" label="Colleges" icon={University} />
         <NavItem href="/plan" label="My Plan" icon={CalendarClock} />
-        <NavItem href="/counselor" label="CounselorBro" icon={MessageCircle} />
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <NavItem href="/settings" label="Settings" icon={Settings} />
         </div>

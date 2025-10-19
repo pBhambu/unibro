@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { ChatbotPanel } from "@/components/ChatbotPanel";
 import { Plus, Trash2 } from "lucide-react";
 
 type PlanItem = { id: string; date: string; action: string };
@@ -10,27 +9,63 @@ export default function PlanPage() {
   const [endDate, setEndDate] = useState<string>("");
   const [planItems, setPlanItems] = useState<PlanItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const abortRef = useRef<AbortController | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const initialLoadRef = useRef(true);
 
   useEffect(()=>{
-    const s = localStorage.getItem("plan.startDate");
-    const d = localStorage.getItem("plan.endDate");
-    const p = localStorage.getItem("plan.items");
-    if (s) setStartDate(s);
-    if (d) setEndDate(d);
-    if (p) {
-      try {
-        setPlanItems(JSON.parse(p));
-      } catch {}
+    if (typeof window !== 'undefined') {
+      const s = localStorage.getItem("plan.startDate");
+      const d = localStorage.getItem("plan.endDate");
+      const p = localStorage.getItem("plan.items");
+      console.log('Loading plan from localStorage:', { startDate: s, endDate: d, items: p });
+      if (s) setStartDate(s);
+      if (d) setEndDate(d);
+      if (p) {
+        try {
+          const parsed = JSON.parse(p);
+          if (Array.isArray(parsed)) {
+            console.log('Setting plan items:', parsed);
+            setPlanItems(parsed);
+          }
+        } catch (e) {
+          console.error('Error parsing plan items:', e);
+        }
+      }
     }
   },[]);
 
-  useEffect(()=>{ if(startDate) localStorage.setItem("plan.startDate", startDate); },[startDate]);
-  useEffect(()=>{ if(endDate) localStorage.setItem("plan.endDate", endDate); },[endDate]);
-  useEffect(()=>{ localStorage.setItem("plan.items", JSON.stringify(planItems)); },[planItems]);
+  useEffect(()=>{ 
+    if(startDate) localStorage.setItem("plan.startDate", startDate); 
+    else localStorage.removeItem("plan.startDate");
+  },[startDate]);
+  useEffect(()=>{ 
+    if(endDate) localStorage.setItem("plan.endDate", endDate); 
+    else localStorage.removeItem("plan.endDate");
+  },[endDate]);
+  useEffect(()=>{ 
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      setSaveStatus('saving');
+      const timeoutId = setTimeout(() => {
+        try {
+          localStorage.setItem("plan.items", JSON.stringify(planItems));
+          console.log('Saved plan items to localStorage:', planItems);
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 1500);
+        } catch (e) {
+          console.error('Error saving plan items:', e);
+        }
+      }, 400);
+      return () => clearTimeout(timeoutId);
+    }
+  },[planItems]);
 
   const generate = async () => {
     if (loading) return;
@@ -47,7 +82,7 @@ export default function PlanPage() {
     try {
       setLoading(true);
       abortRef.current = new AbortController();
-      const res = await fetch("/api/gemini/plan", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ endDate, profile }), signal: abortRef.current.signal });
+      const res = await fetch("/api/gemini/plan", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ startDate, endDate, profile }), signal: abortRef.current.signal });
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
@@ -139,7 +174,14 @@ export default function PlanPage() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         <div className="card p-6 space-y-3">
-          <div className="text-xl font-bold text-gray-900 dark:text-gray-100 font-title">My Plan</div>
+          <div className="flex items-center justify-between">
+            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 font-title">My Plan</div>
+            {saveStatus !== 'idle' && (
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {saveStatus === 'saving' ? 'Saving...' : 'Saved'}
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-end">
             <label className="block">
               <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">Start Date</div>
@@ -255,9 +297,7 @@ export default function PlanPage() {
         </div>
       </div>
 
-      <div className="lg:col-span-1">
-        <ChatbotPanel context={{ page: "plan", planItems }} />
-      </div>
+      {/* Chat functionality is now handled by the global CounselorBro component */}
     </div>
   );
 }

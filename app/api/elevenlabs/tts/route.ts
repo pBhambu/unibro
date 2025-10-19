@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, apiKey: customApiKey } = await req.json();
+    const { text, apiKey: customApiKey, voiceId: customVoiceId } = await req.json();
     const apiKey = customApiKey || process.env.ELEVENLABS_API_KEY;
     
     if (!apiKey) {
       return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 });
     }
 
-    // Use ElevenLabs TTS API
-    // Voice ID: Rachel (default professional voice)
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+    // Use custom voice ID if provided, otherwise use env variable, otherwise use default (Rachel)
+    const voiceId = customVoiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
     
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
