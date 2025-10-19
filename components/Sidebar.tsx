@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Pencil, CalendarClock, University, MessageCircle, Settings } from "lucide-react";
+import Image from "next/image";
 
 const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
   const pathname = usePathname();
@@ -22,10 +23,16 @@ const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; ico
 export function Sidebar() {
   return (
     <aside className="w-16 sm:w-60 p-3 sm:p-4 glass border-r border-gray-200/50 dark:border-gray-700/50 sticky top-0 h-screen overflow-y-auto">
-      <Link href="/" className="flex items-center justify-center sm:justify-start gap-3 mb-6 group">
-        <span className="font-bold text-xl text-emerald-800 dark:text-amber-400 font-title group-hover:text-emerald-700 dark:group-hover:text-amber-300 transition">
-          unibro
-        </span>
+      <Link href="/" className="flex items-center justify-center w-full mb-6 group">
+        <div className="relative w-32 h-12 sm:w-40 sm:h-14">
+          <Image 
+            src="/logo.png" 
+            alt="UniBro Logo" 
+            fill
+            className="object-contain group-hover:scale-105 transition-transform"
+            priority
+          />
+        </div>
       </Link>
       <nav className="flex flex-col gap-2">
         <NavItem href="/application" label="Application" icon={Pencil} />

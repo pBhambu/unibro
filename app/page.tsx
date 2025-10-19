@@ -7,7 +7,20 @@ export default function Page() {
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="font-bold text-xl text-green-700 dark:text-green-400 font-title">UniBro</div>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="relative w-8 h-8">
+              <Image 
+                src="/logo.png" 
+                alt="UniBro Logo" 
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-amber-600 bg-clip-text text-transparent">
+              UniBro
+            </span>
+          </Link>
           <div className="flex items-center gap-3">
             <Link href="/application" className="px-4 py-2 rounded-xl bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
               Log in
