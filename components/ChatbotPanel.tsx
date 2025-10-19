@@ -19,8 +19,13 @@ export function ChatbotPanel({ context }: { context?: any }) {
     setInput("");
     setLoading(true);
     try {
+      let systemInstructions = '';
+      if (context?.page === 'plan') {
+        systemInstructions = '\n\nIMPORTANT: If the user asks you to edit, update, or modify the plan, respond with a JSON code block containing the updated plan items. Format: ```json\n[{"id": "abc123", "date": "2025-01-15", "action": "Task description"}, ...]\n```. The plan will be automatically updated.';
+      }
       const enrichedContext = {
         ...context,
+        systemInstructions,
         profile: {
           majors: localStorage.getItem("profile.majors"),
           location: localStorage.getItem("profile.location"),
@@ -38,16 +43,32 @@ export function ChatbotPanel({ context }: { context?: any }) {
         }
       };
       const personality = localStorage.getItem('customPersonality') || undefined;
+      const apiKey = localStorage.getItem('geminiApiKey') || undefined;
       const res = await fetch("/api/gemini/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg], context: enrichedContext, personality }),
+        body: JSON.stringify({ messages: [...messages, userMsg], context: enrichedContext, personality, apiKey }),
       });
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
       const text = res.ok ? (data.text || "") : "I'm having trouble responding right now.";
       setMessages((m) => [...m, { role: "assistant", content: text }]);
+      
+      // Check if assistant wants to edit the plan
+      if (context?.page === 'plan' && text.includes('```json') && typeof window !== 'undefined' && (window as any).updatePlan) {
+        try {
+          const jsonMatch = text.match(/```json\s*([\s\S]*?)```/);
+          if (jsonMatch) {
+            const planData = JSON.parse(jsonMatch[1]);
+            if (Array.isArray(planData)) {
+              (window as any).updatePlan(planData);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse plan update:', e);
+        }
+      }
     } catch (e: any) {
       setMessages((m) => [
         ...m,
@@ -79,7 +100,7 @@ export function ChatbotPanel({ context }: { context?: any }) {
           </div>
         ))}
       </div>
-      <div className="p-4 pt-2 border-t border-gray-100 bg-white">
+      <div className="p-4 pt-2 border-t border-gray-100 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
         <div className="flex gap-2">
           <input
             className="input"

@@ -4,6 +4,7 @@ import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 
 export default function CounselorBroPage() {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -16,11 +17,34 @@ export default function CounselorBroPage() {
   const clearConversation = () => {
     if (confirm('Clear this conversation?')) {
       setMessages([]);
+      localStorage.removeItem('counselor.messages');
       if (conversationActive) {
         stopConversation();
       }
     }
   };
+
+  // Load messages from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('counselor.messages');
+    if (saved) {
+      try {
+        setMessages(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
+
+  // Save messages to localStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('counselor.messages', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   useEffect(() => {
     // Initialize speech recognition if available
@@ -35,12 +59,6 @@ export default function CounselorBroPage() {
         const transcript = event.results[0][0].transcript;
         setInput(transcript);
         setIsListening(false);
-        // Auto-send in conversation mode
-        if (conversationActive) {
-          setTimeout(() => {
-            sendMessage(transcript);
-          }, 100);
-        }
       };
 
       recognitionRef.current.onerror = () => {
@@ -52,6 +70,16 @@ export default function CounselorBroPage() {
       };
     }
   }, []);
+
+  // Auto-send when input changes in conversation mode
+  useEffect(() => {
+    if (conversationActive && input && !isListening && !loading) {
+      const timer = setTimeout(() => {
+        sendMessage(input);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [input, conversationActive, isListening, loading]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
@@ -71,10 +99,11 @@ export default function CounselorBroPage() {
     if (!voiceEnabled) return;
     try {
       setIsSpeaking(true);
+      const elevenlabsApiKey = localStorage.getItem('elevenlabsApiKey') || undefined;
       const res = await fetch('/api/elevenlabs/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text, apiKey: elevenlabsApiKey })
       });
       if (!res.ok) throw new Error('TTS failed');
       const audioBlob = await res.blob();
@@ -140,10 +169,12 @@ export default function CounselorBroPage() {
         plan: localStorage.getItem("plan.table"),
       };
       const personality = localStorage.getItem('customPersonality') || undefined;
+      const apiKey = localStorage.getItem('geminiApiKey') || undefined;
+      const systemPrompt = "You are CounselorBro, a friendly and knowledgeable college admissions counselor. Always refer to yourself as CounselorBro when appropriate.";
       const res = await fetch("/api/gemini/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg], context: enrichedContext, personality }),
+        body: JSON.stringify({ messages: [...messages, userMsg], context: enrichedContext, personality: personality || systemPrompt, apiKey }),
       });
       const txt = await res.text();
       let data: any = {};
@@ -262,6 +293,7 @@ export default function CounselorBroPage() {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
         <div className="p-4 border-t border-gray-100 bg-white">
           {conversationActive ? (

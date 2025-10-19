@@ -40,7 +40,7 @@ export default function CollegesPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
-        <div className="card p-4">
+        <div className="card p-4 relative z-20">
           <div className="font-semibold mb-2">Add College</div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
             <div className="relative sm:col-span-2">
@@ -48,12 +48,12 @@ export default function CollegesPage() {
                 onFocus={()=>setShowSuggest(true)}
                 onChange={(e)=>{ setName(e.target.value); setShowSuggest(true); }} />
               {showSuggest && suggestions.length > 0 && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-soft max-h-60 overflow-auto">
+                <ul className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
                   {suggestions.map((s, i)=> (
-                    <li key={i} className="px-3 py-2 hover:bg-purple-50 cursor-pointer"
+                    <li key={i} className="px-3 py-2 hover:bg-emerald-50 dark:hover:bg-amber-900/20 cursor-pointer"
                       onMouseDown={()=>{ setName(s.name); setCity(s.city); setState(s.state); setShowSuggest(false); }}>
-                      <div className="font-medium">{s.name}</div>
-                      <div className="text-xs text-gray-600">{s.city}, {s.state}</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{s.name}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">{s.city}, {s.state}</div>
                     </li>
                   ))}
                 </ul>
@@ -68,22 +68,36 @@ export default function CollegesPage() {
         <div className="card p-0">
           <div className="px-4 py-3 text-lg font-semibold">My Colleges</div>
           <ul>
-            {colleges.map((c) => (
-              <li key={c.id} className="px-4 py-4 border-t border-gray-100 flex items-center justify-between">
-                <div>
-                  <Link href={`/colleges/${c.id}`} className="text-lg font-medium hover:underline">{c.name}</Link>
-                  <div className="text-sm text-gray-600">
-                    {[c.city, c.state].filter(Boolean).join(", ")}
+            {colleges.map((c) => {
+              const category = categoryFromPercent(c.percent);
+              const badgeColors = {
+                Safety: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700',
+                Target: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700',
+                Reach: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-700'
+              };
+              return (
+                <li key={c.id} className="px-4 py-4 border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <Link href={`/colleges/${c.id}`} className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title">{c.name}</Link>
+                        {category && (
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${badgeColors[category]}`}>
+                            {category}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {[c.city, c.state].filter(Boolean).join(", ")}
+                      </div>
+                    </div>
                     {typeof c.percent === 'number' && (
-                      <> • {categoryFromPercent(c.percent)}</>
+                      <div className="text-2xl font-bold text-emerald-700 dark:text-amber-400 ml-4">{c.percent}%</div>
                     )}
                   </div>
-                </div>
-                {typeof c.percent === 'number' && (
-                  <div className="text-brand-700 font-semibold">{c.percent}%</div>
-                )}
-              </li>
-            ))}
+                </li>
+              );
+            })}
             {colleges.length === 0 && (
               <div className="px-4 pb-6 text-sm text-gray-600">Add a college above to get started.</div>
             )}

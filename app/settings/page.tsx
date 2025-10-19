@@ -5,12 +5,18 @@ import { Moon, Sun } from "lucide-react";
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [customPersonality, setCustomPersonality] = useState("");
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [elevenlabsApiKey, setElevenlabsApiKey] = useState("");
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
     const savedPersonality = localStorage.getItem("customPersonality") || "";
+    const savedGeminiKey = localStorage.getItem("geminiApiKey") || "";
+    const savedElevenlabsKey = localStorage.getItem("elevenlabsApiKey") || "";
     setDarkMode(savedDarkMode);
     setCustomPersonality(savedPersonality);
+    setGeminiApiKey(savedGeminiKey);
+    setElevenlabsApiKey(savedElevenlabsKey);
     
     if (savedDarkMode) {
       document.documentElement.classList.add("dark");
@@ -96,6 +102,65 @@ export default function SettingsPage() {
               </button>
               <button onClick={resetPersonality} className="btn-secondary">
                 Reset to Default
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card p-8 space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 font-title">API Keys</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Override the default API keys with your own. Leave blank to use the app's default keys.
+          </p>
+          <div className="space-y-4">
+            <label className="block">
+              <div className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Google Gemini API Key
+              </div>
+              <input
+                type="password"
+                className="input font-mono text-sm"
+                placeholder="AIza..." 
+                value={geminiApiKey}
+                onChange={(e) => setGeminiApiKey(e.target.value)}
+              />
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">Google AI Studio</a>
+              </div>
+            </label>
+            <label className="block">
+              <div className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                ElevenLabs API Key
+              </div>
+              <input
+                type="password"
+                className="input font-mono text-sm"
+                placeholder="sk_..."
+                value={elevenlabsApiKey}
+                onChange={(e) => setElevenlabsApiKey(e.target.value)}
+              />
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Get your key from <a href="https://elevenlabs.io" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">ElevenLabs</a>
+              </div>
+            </label>
+            <div className="flex gap-2">
+              <button onClick={() => {
+                localStorage.setItem("geminiApiKey", geminiApiKey);
+                localStorage.setItem("elevenlabsApiKey", elevenlabsApiKey);
+                alert("API keys saved!");
+              }} className="btn">
+                Save API Keys
+              </button>
+              <button onClick={() => {
+                setGeminiApiKey("");
+                setElevenlabsApiKey("");
+                localStorage.removeItem("geminiApiKey");
+                localStorage.removeItem("elevenlabsApiKey");
+                alert("API keys cleared!");
+              }} className="btn-secondary">
+                Clear Keys
               </button>
             </div>
           </div>

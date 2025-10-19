@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json();
-    const apiKey = process.env.ELEVENLABS_API_KEY;
+    const { text, apiKey: customApiKey } = await req.json();
+    const apiKey = customApiKey || process.env.ELEVENLABS_API_KEY;
     
     if (!apiKey) {
       return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 });

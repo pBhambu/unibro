@@ -8,7 +8,7 @@ export default function CollegeEditorPage() {
   const id = params?.id as string;
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
-  const [fields, setFields] = useState<{ id: string; label: string; type: "text" | "textarea"; optional?: boolean }[]>([]);
+  const [fields, setFields] = useState<{ id: string; label: string; type: "text" | "textarea" | "select"; optional?: boolean; options?: string[] }[]>([]);
   const [answers, setAnswers] = useState<Record<string,string>>({});
   const [percent, setPercent] = useState<number | null>(null);
   const [loadingFields, setLoadingFields] = useState(false);
@@ -57,7 +57,8 @@ export default function CollegeEditorPage() {
     try {
       setLoadingFields(true);
       abortFieldsRef.current = new AbortController();
-      const res = await fetch("/api/gemini/questions", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ prompt }), signal: abortFieldsRef.current.signal });
+      const apiKey = localStorage.getItem('geminiApiKey') || undefined;
+      const res = await fetch("/api/gemini/questions", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ prompt, apiKey }), signal: abortFieldsRef.current.signal });
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
@@ -176,16 +177,28 @@ export default function CollegeEditorPage() {
 
         <div className="card p-6 space-y-3">
           <div className="font-semibold">Upload PDF or Paste Questions</div>
-          <input type="file" accept=".pdf" className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" onChange={async (e) => {
+          <input type="file" accept=".pdf" className="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 dark:file:bg-amber-900/30 file:text-emerald-800 dark:file:text-amber-300 hover:file:bg-emerald-200 dark:hover:file:bg-amber-900/50 file:cursor-pointer" onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            setLoadingFields(true);
             const formData = new FormData();
             formData.append('file', file);
+            const apiKey = localStorage.getItem('geminiApiKey');
+            if (apiKey) formData.append('apiKey', apiKey);
             try {
-              const res = await fetch('/api/parse-pdf', { method: 'POST', body: formData });
+              const res = await fetch('/api/gemini/questions-pdf', { method: 'POST', body: formData });
               const data = await res.json();
-              if (data.text) setPrompt(data.text);
-            } catch { alert('Failed to parse PDF'); }
+              if (data.fields) {
+                setFields(data.fields);
+                setAnswers({});
+              } else {
+                alert('Failed to parse PDF: ' + (data.error || 'Unknown error'));
+              }
+            } catch (err) { 
+              alert('Failed to parse PDF'); 
+            } finally {
+              setLoadingFields(false);
+            }
           }} />
           <div className="text-xs text-gray-500">Or paste text below:</div>
           <textarea className="input min-h-[120px]" placeholder="Paste all the college's questions (including any existing answers)..." value={prompt} onChange={(e)=>setPrompt(e.target.value)} />
@@ -206,7 +219,14 @@ export default function CollegeEditorPage() {
                   {f.label}
                   {f.optional && <span className="ml-1 text-xs text-gray-400">(optional)</span>}
                 </div>
-                {f.type === 'text' ? (
+                {f.type === 'select' ? (
+                  <select className="input" value={answers[f.id]||""} onChange={(e)=>setAnswers(a=>({...a,[f.id]: e.target.value}))}>
+                    <option value="">Select...</option>
+                    {(f.options || []).map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                ) : f.type === 'text' ? (
                   <input className="input" value={answers[f.id]||""} onChange={(e)=>setAnswers(a=>({...a,[f.id]: e.target.value}))} />
                 ) : (
                   <textarea className="input min-h-[100px]" value={answers[f.id]||""} onChange={(e)=>setAnswers(a=>({...a,[f.id]: e.target.value}))} />

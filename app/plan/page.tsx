@@ -104,23 +104,23 @@ export default function PlanPage() {
               <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">End Date</div>
               <input type="date" className="input" value={endDate} onChange={(e)=>setEndDate(e.target.value)} />
             </label>
-            <div className="flex gap-2">
-              {loading && <button onClick={cancelGenerate} className="btn bg-red-600 hover:bg-red-700">Cancel</button>}
-              <button className="btn disabled:opacity-50 disabled:cursor-not-allowed" onClick={generate} disabled={loading}>
+            <div className="flex gap-2 flex-wrap">
+              {loading && <button onClick={cancelGenerate} className="btn bg-red-600 hover:bg-red-700 whitespace-nowrap">Cancel</button>}
+              <button className="btn disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap" onClick={generate} disabled={loading}>
                 {loading ? "Generating..." : "Generate Plan"}
               </button>
             </div>
           </div>
         </div>
 
-        {planItems.length > 0 && (
-          <div className="card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100 font-title">Timeline</div>
-              <button onClick={addItem} className="btn-secondary flex items-center gap-2">
-                <Plus size={16} /> Add Item
-              </button>
-            </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-lg font-bold text-gray-900 dark:text-gray-100 font-title">Timeline</div>
+            <button onClick={addItem} className="btn-secondary flex items-center gap-2">
+              <Plus size={16} /> Add Item
+            </button>
+          </div>
+          {planItems.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -141,13 +141,18 @@ export default function PlanPage() {
                           onChange={(e) => updateItem(item.id, 'date', e.target.value)}
                         />
                       </td>
-                      <td className="py-3 px-4">
-                        <input
-                          type="text"
-                          className="input py-1.5 text-sm"
+                      <td className="py-3 px-4 w-full">
+                        <textarea
+                          className="input py-1.5 text-sm min-h-[2.5rem] resize-y"
                           placeholder="Enter action..."
                           value={item.action}
                           onChange={(e) => updateItem(item.id, 'action', e.target.value)}
+                          rows={1}
+                          onInput={(e) => {
+                            const target = e.target as HTMLTextAreaElement;
+                            target.style.height = 'auto';
+                            target.style.height = target.scrollHeight + 'px';
+                          }}
                         />
                       </td>
                       <td className="py-3 px-4">
@@ -163,8 +168,12 @@ export default function PlanPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+              Click "Add Item" or "Generate Plan" to get started
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="lg:col-span-1">

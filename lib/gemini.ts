@@ -4,12 +4,31 @@ export function hasGemini() {
   return !!apiKey;
 }
 
-export async function geminiText(prompt: string): Promise<string> {
-  if (!apiKey) return mockResponse(prompt);
+export async function geminiText(prompt: string, customApiKey?: string): Promise<string> {
+  const key = customApiKey || apiKey;
+  if (!key) return mockResponse(prompt);
   const { GoogleGenerativeAI } = await import("@google/generative-ai");
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
   const res = await model.generateContent(prompt);
+  return res.response.text();
+}
+
+export async function geminiWithPDF(prompt: string, pdfData: { mimeType: string; data: string }, customApiKey?: string): Promise<string> {
+  const key = customApiKey || apiKey;
+  if (!key) return mockResponse(prompt);
+  const { GoogleGenerativeAI } = await import("@google/generative-ai");
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const res = await model.generateContent([
+    prompt,
+    {
+      inlineData: {
+        mimeType: pdfData.mimeType,
+        data: pdfData.data
+      }
+    }
+  ]);
   return res.response.text();
 }
 

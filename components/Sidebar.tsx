@@ -9,8 +9,8 @@ const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; ico
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition w-full hover:bg-green-50 dark:hover:bg-green-900/20 ${
-        active ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" : "text-gray-700 dark:text-gray-300"
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition w-full hover:bg-emerald-50 dark:hover:bg-amber-900/20 ${
+        active ? "bg-emerald-100 dark:bg-amber-900/40 text-emerald-800 dark:text-amber-200" : "text-gray-700 dark:text-gray-200"
       }`}
     >
       <Icon size={20} />
@@ -22,7 +22,7 @@ const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; ico
 export function Sidebar() {
   return (
     <aside className="w-16 sm:w-60 p-3 sm:p-4 glass border-r border-gray-200/50 dark:border-gray-700/50 sticky top-0 h-screen overflow-y-auto">
-      <div className="text-center sm:text-left font-bold text-xl text-green-700 dark:text-green-400 mb-6 font-title">UniBro</div>
+      <div className="text-center sm:text-left font-bold text-xl text-emerald-800 dark:text-amber-400 mb-6 font-title">UniBro</div>
       <nav className="flex flex-col gap-2">
         <NavItem href="/application" label="Application" icon={Pencil} />
         <NavItem href="/colleges" label="Colleges" icon={University} />
