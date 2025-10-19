@@ -70,8 +70,9 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
         <div className="card p-6">
           <div className="text-xl font-semibold mb-4">My Profile</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -87,50 +88,38 @@ export default function ApplicationPage() {
           <div className="grid grid-cols-1 gap-4">
             <div>
               <div className="font-semibold mb-3">SAT Scores</div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <label className="block">
-                  <div className="mb-1 text-sm text-gray-600">SAT Math</div>
-                  <input 
-                    className="input" 
-                    value={satMath} 
-                    placeholder="780"
-                    type="number"
-                    min="200"
-                    max="800"
-                    onChange={(e) => {
-                      setSatMath(e.target.value);
-                      localStorage.setItem('app.sat.math', e.target.value);
-                    }} 
-                  />
-                </label>
-                <label className="block">
-                  <div className="mb-1 text-sm text-gray-600">SAT Reading & Writing</div>
-                  <input 
-                    className="input" 
-                    value={satReading} 
-                    placeholder="760"
-                    type="number"
-                    min="200"
-                    max="800"
-                    onChange={(e) => {
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="card p-4 flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SAT Reading/Writing</label>
+                  <AutosaveInput
+                    storageKey="app.sat.reading"
+                    label=""
+                    placeholder="Score"
+                    className="h-12"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       setSatReading(e.target.value);
-                      localStorage.setItem('app.sat.reading', e.target.value);
-                    }} 
+                    }}
                   />
-                </label>
-                <label className="block">
-                  <div className="mb-1 text-sm text-gray-600 flex items-center gap-2">
-                    <span>SAT Total</span>
-                    <span className="text-xs text-emerald-600">auto-calculated</span>
+                </div>
+                <div className="card p-4 flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SAT Math</label>
+                  <AutosaveInput
+                    storageKey="app.sat.math"
+                    label=""
+                    placeholder="Score"
+                    className="h-12"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setSatMath(e.target.value);
+                    }}
+                  />
+                </div>
+                <div className="card p-4 flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SAT Total</label>
+                  <div className="w-full h-12 flex items-center px-3 bg-white/80 dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <span className="text-gray-900 dark:text-gray-100 text-lg font-medium">{satTotal || '—'}</span>
+                    <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">auto-calculated</span>
                   </div>
-                  <input 
-                    className="input bg-gray-50 dark:bg-gray-800" 
-                    value={satTotal} 
-                    placeholder="1540"
-                    readOnly
-                  />
-                </label>
-              </div>
+                </div>
             </div>
             <div>
               <div className="font-semibold mb-3">ACT Scores</div>
@@ -230,8 +219,10 @@ export default function ApplicationPage() {
         </div>
       </div>
 
-      <div className="lg:col-span-1">
-        <ChatbotPanel context={{ page: "application" }} />
+        </div>
+        <div className="lg:col-span-1">
+          <ChatbotPanel context={{ page: "application" }} />
+        </div>
       </div>
     </div>
   );

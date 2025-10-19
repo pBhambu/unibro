@@ -88,9 +88,9 @@ export default function Page() {
         </section>
 
         <section className="py-10 grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#31BD01] to-[#2bd600] rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-300"></div>
-            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl h-full">
+          <div className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 dark:border-gray-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#31BD01]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
               <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -99,32 +99,35 @@ export default function Page() {
               <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Plan</h3>
               <p className="text-gray-600 dark:text-gray-300">Create a timeline and stay on track with your college applications.</p>
             </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
           
-          <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#31BD01] to-[#2bd600] rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-300"></div>
-            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl h-full">
+          <div className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 dark:border-gray-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#31BD01]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
               <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Write</h3>
-              <p className="text-gray-600 dark:text-gray-300">Draft and iterate on standout essays with AI assistance.</p>
+              <p className="text-gray-600 dark:text-gray-300">Craft compelling essays with AI-powered writing assistance and feedback.</p>
             </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
           
-          <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#31BD01] to-[#2bd600] rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-300"></div>
-            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl h-full">
+          <div className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 dark:border-gray-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#31BD01]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
               <div className="w-12 h-12 rounded-lg bg-[#31BD01]/10 dark:bg-[#31BD01]/20 flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-[#31BD01]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Decide</h3>
-              <p className="text-gray-600 dark:text-gray-300">Get personalized guidance on your college list and decisions.</p>
+              <p className="text-gray-600 dark:text-gray-300">Get personalized college recommendations based on your profile and preferences.</p>
             </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#31BD01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
         </section>
 

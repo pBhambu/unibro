@@ -111,48 +111,129 @@ export function ChatbotPanel({ context }: { context?: any }) {
   };
 
   return (
-    <div className="card sticky top-4 h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
-      <div className="font-semibold p-4 pb-2 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm z-10 flex items-center justify-between">
-        <span>Assistant</span>
+    <div className="card sticky top-4 h-[calc(100vh-2rem)] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      {/* Header */}
+      <div className="font-semibold p-4 border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm z-10 flex items-center justify-between">
+        <span className="text-gray-900 dark:text-gray-100">Assistant</span>
         {messages.length > 0 && (
           showClearConfirm ? (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-600 dark:text-gray-400">Clear chat?</span>
-              <button onClick={clearConversation} className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/60">
+              <button 
+                onClick={clearConversation} 
+                className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 rounded transition-colors"
+              >
                 Yes
               </button>
-              <button onClick={() => setShowClearConfirm(false)} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+              <button 
+                onClick={() => setShowClearConfirm(false)} 
+                className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
+              >
                 No
               </button>
             </div>
           ) : (
-            <button onClick={() => setShowClearConfirm(true)} className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400">
+            <button 
+              onClick={() => setShowClearConfirm(true)} 
+              className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+            >
               Clear
             </button>
           )
         )}
       </div>
-      <div className="space-y-2 p-4 flex-1 overflow-y-auto">
-        {messages.map((m, i) => (
-          <div key={i} className={`${m.role === "user" ? "text-right" : "text-left"}`}>
-            <span className={`inline-block px-3 py-2 rounded-lg ${m.role === "user" ? "bg-brand-600 text-white" : "bg-gray-100"}`}>
-              {m.role === "assistant" ? (
-                <span dangerouslySetInnerHTML={{ __html: m.content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\n/g, '<br/>') }} />
-              ) : m.content}
-            </span>
+      
+      {/* Messages container */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-center p-6">
+            <div>
+              <div className="text-gray-400 dark:text-gray-500 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">How can I help you today?</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Ask me anything about your application process.</p>
+            </div>
           </div>
-        ))}
+        ) : (
+          messages.map((m, i) => (
+            <div 
+              key={i} 
+              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div 
+                className={`max-w-[85%] rounded-xl px-4 py-2.5 ${
+                  m.role === "user" 
+                    ? "bg-emerald-600 text-white rounded-br-none" 
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none"
+                }`}
+              >
+                {m.role === "assistant" ? (
+                  <div 
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: m.content
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br/>') 
+                    }} 
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap">{m.content}</p>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
-      <div className="p-4 pt-2 border-t border-gray-100 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-        <div className="flex gap-2">
-          <input
-            className="input"
-            placeholder="Ask for help or feedback..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
-          />
-          <button className="btn" onClick={send} disabled={loading}>{loading ? "..." : "Send"}</button>
+      
+      {/* Input area - always visible at the bottom */}
+      <div className="border-t border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm p-4">
+        <div className="flex items-end gap-2">
+          <div className="flex-1 relative">
+            <textarea
+              className="w-full min-h-[44px] max-h-32 py-2.5 px-4 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+              placeholder="Ask for help or feedback..."
+              rows={1}
+              value={input}
+              onChange={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = (e.target.scrollHeight) + 'px';
+                setInput(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              style={{
+                minHeight: '44px',
+                maxHeight: '160px',
+                overflowY: 'auto'
+              }}
+            />
+            <button 
+              onClick={send} 
+              disabled={loading || !input.trim()}
+              className={`absolute bottom-2.5 right-2 p-1.5 rounded-lg ${
+                input.trim() 
+                  ? 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30' 
+                  : 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5" 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

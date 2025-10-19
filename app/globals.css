@@ -180,22 +180,87 @@ h6 { font-size: 1rem; }
 
 /* Glow effects */
 .glow-green {
-  box-shadow: 0 0 20px rgba(49, 189, 1, 0.5), 0 0 40px rgba(49, 189, 1, 0.3);
+  --glow-color: rgba(49, 189, 1, 0.5);
+  box-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color);
+}
+
+.dark .glow-green {
+  --glow-color: rgba(91, 224, 50, 0.5);
+  box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
 }
 
 .glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+  --glow-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color);
 }
 
 /* Gradient text */
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#31BD01] to-[#2bd600];
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #31BD01, #2bd600);
 }
 
 /* Glassmorphism */
 .glass {
-  @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+.dark .glass {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Consistent borders for light mode */
+:root {
+  --border-light: rgba(0, 0, 0, 0.1);
+  --border-dark: rgba(255, 255, 255, 0.1);
+}
+
+.border-light {
+  border: 1px solid var(--border-light);
+}
+
+.dark .border-light {
+  border-color: var(--border-dark);
+}
+
+/* Fix for dark mode elements */
+.dark .bg-gray-100 {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.dark .text-gray-800 {
+  color: #e5e7eb;
+}
+
+/* Button hover states */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px 0 rgba(49, 189, 1, 0.4);
+}
+
+.dark .btn:hover {
+  box-shadow: 0 8px 25px 0 rgba(91, 224, 50, 0.3);
+}
+
+/* Card hover effects */
+.card {
+  transition: all 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 45px 0 rgba(49, 189, 1, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark .card:hover {
+  box-shadow: 0 15px 45px 0 rgba(91, 224, 50, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* Hover effects */
