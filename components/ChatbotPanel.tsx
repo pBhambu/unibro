@@ -5,6 +5,7 @@ export function ChatbotPanel({ context }: { context?: any }) {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   
   // Generate a unique storage key based on the page context
   const storageKey = `chat.${context?.page || 'default'}${context?.college ? '.' + context.college : ''}`;
@@ -30,10 +31,9 @@ export function ChatbotPanel({ context }: { context?: any }) {
   }, [messages, storageKey]);
   
   const clearConversation = () => {
-    if (confirm('Clear this conversation?')) {
-      setMessages([]);
-      localStorage.removeItem(storageKey);
-    }
+    setMessages([]);
+    localStorage.removeItem(storageKey);
+    setShowClearConfirm(false);
   };
 
   const send = async () => {
@@ -45,7 +45,13 @@ export function ChatbotPanel({ context }: { context?: any }) {
     try {
       let systemInstructions = '';
       if (context?.page === 'plan') {
-        systemInstructions = '\n\nIMPORTANT: If the user asks you to edit, update, or modify the plan, respond with a JSON code block containing the updated plan items. Format: ```json\n[{"id": "abc123", "date": "2025-01-15", "action": "Task description"}, ...]\n```. The plan will be automatically updated.';
+        // Format plan items with proper date structure for the assistant
+        const formattedPlanItems = context.planItems?.map((item: any) => ({
+          id: item.id,
+          date: item.date,
+          action: item.action
+        })) || [];
+        systemInstructions = `\n\nCurrent Plan Items:\n${JSON.stringify(formattedPlanItems, null, 2)}\n\nIMPORTANT: When referring to plan items, use the exact dates shown above. Each item has a date field. If the user asks you to edit, update, or modify the plan, respond with a JSON code block containing the updated plan items. Format: \`\`\`json\n[{"id": "abc123", "date": "2025-01-15", "action": "Task description"}, ...]\n\`\`\`. The plan will be automatically updated.`;
       }
       const enrichedContext = {
         ...context,
@@ -109,9 +115,21 @@ export function ChatbotPanel({ context }: { context?: any }) {
       <div className="font-semibold p-4 pb-2 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm z-10 flex items-center justify-between">
         <span>Assistant</span>
         {messages.length > 0 && (
-          <button onClick={clearConversation} className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400">
-            Clear
-          </button>
+          showClearConfirm ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Clear chat?</span>
+              <button onClick={clearConversation} className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/60">
+                Yes
+              </button>
+              <button onClick={() => setShowClearConfirm(false)} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+                No
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setShowClearConfirm(true)} className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400">
+              Clear
+            </button>
+          )
         )}
       </div>
       <div className="space-y-2 p-4 flex-1 overflow-y-auto">

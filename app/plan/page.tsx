@@ -6,6 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 type PlanItem = { id: string; date: string; action: string };
 
 export default function PlanPage() {
+  const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [planItems, setPlanItems] = useState<PlanItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -15,8 +16,10 @@ export default function PlanPage() {
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
   useEffect(()=>{
+    const s = localStorage.getItem("plan.startDate");
     const d = localStorage.getItem("plan.endDate");
     const p = localStorage.getItem("plan.items");
+    if (s) setStartDate(s);
     if (d) setEndDate(d);
     if (p) {
       try {
@@ -25,6 +28,7 @@ export default function PlanPage() {
     }
   },[]);
 
+  useEffect(()=>{ if(startDate) localStorage.setItem("plan.startDate", startDate); },[startDate]);
   useEffect(()=>{ if(endDate) localStorage.setItem("plan.endDate", endDate); },[endDate]);
   useEffect(()=>{ localStorage.setItem("plan.items", JSON.stringify(planItems)); },[planItems]);
 
@@ -74,17 +78,33 @@ export default function PlanPage() {
         items.push({ id: Math.random().toString(36).substr(2, 9), date: match[1], action: match[2].trim() });
       }
     });
+    // Sort chronologically
+    items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     setPlanItems(items);
   };
 
   const addItem = () => {
     const id = Math.random().toString(36).substr(2, 9);
-    setPlanItems([...planItems, { id, date: '', action: '' }]);
+    const newItems = [...planItems, { id, date: '', action: '' }];
+    // Sort chronologically
+    newItems.sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    setPlanItems(newItems);
     setLastAddedId(id);
   };
 
   const updateItem = (id: string, field: 'date' | 'action', value: string) => {
-    setPlanItems(planItems.map(item => item.id === id ? { ...item, [field]: value } : item));
+    const newItems = planItems.map(item => item.id === id ? { ...item, [field]: value } : item);
+    // Sort chronologically after update
+    newItems.sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    setPlanItems(newItems);
   };
 
   const deleteItem = (id: string) => {
@@ -120,8 +140,12 @@ export default function PlanPage() {
       <div className="lg:col-span-2 space-y-6">
         <div className="card p-6 space-y-3">
           <div className="text-xl font-bold text-gray-900 dark:text-gray-100 font-title">My Plan</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
-            <label className="block sm:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-end">
+            <label className="block">
+              <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">Start Date</div>
+              <input type="date" className="input" value={startDate} onChange={(e)=>setStartDate(e.target.value)} />
+            </label>
+            <label className="block">
               <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">End Date</div>
               <input type="date" className="input" value={endDate} onChange={(e)=>setEndDate(e.target.value)} />
             </label>
@@ -146,9 +170,9 @@ export default function PlanPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300 w-32">Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Action</th>
-                    <th className="w-12"></th>
+                    <th className="w-20"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -158,26 +182,26 @@ export default function PlanPage() {
                       ref={(el) => { rowRefs.current[item.id] = el; }}
                       className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     >
-                      <td className="py-3 px-4 align-top">
+                      <td className="py-3 px-2 align-top">
                         {editingId === item.id ? (
                           <input
                             type="date"
-                            className="input py-1.5 text-sm"
+                            className="input py-1.5 text-sm w-full"
                             value={item.date}
                             onChange={(e) => updateItem(item.id, 'date', e.target.value)}
                           />
                         ) : (
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDate(item.date)}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{formatDate(item.date)}</div>
                         )}
                       </td>
                       <td className="py-3 px-4 w-full">
                         {editingId === item.id ? (
                           <textarea
-                            className="input py-1.5 text-sm min-h-[2.5rem] resize-y"
+                            className="input py-1.5 text-sm min-h-[6rem] resize-y w-full"
                             placeholder="Enter action..."
                             value={item.action}
                             onChange={(e) => updateItem(item.id, 'action', e.target.value)}
-                            rows={1}
+                            rows={3}
                             onInput={(e) => {
                               const target = e.target as HTMLTextAreaElement;
                               target.style.height = 'auto';
@@ -185,7 +209,14 @@ export default function PlanPage() {
                             }}
                           />
                         ) : (
-                          <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{item.action || '-'}</div>
+                          <div 
+                            className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap" 
+                            dangerouslySetInnerHTML={{ 
+                              __html: (item.action || '-')
+                                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                            }}
+                          ></div>
                         )}
                       </td>
                       <td className="py-3 px-4 align-top space-x-2 whitespace-nowrap">

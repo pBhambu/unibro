@@ -183,6 +183,19 @@ export default function CounselorBroPage() {
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
       // Show the actual error message from the API, not a generic fallback
       const text = data.text || data.error || "I'm having trouble responding right now.";
+      
+      // Check if user wants to end conversation
+      const endPhrases = ['goodbye', 'bye', 'end conversation', 'stop', 'that\'s all', 'thanks bye', 'see you'];
+      const userWantsToEnd = messageText ? endPhrases.some(phrase => 
+        messageText.toLowerCase().includes(phrase)
+      ) : false;
+      
+      if (userWantsToEnd && conversationActive) {
+        stopConversation();
+        setMessages((m) => [...m, { role: "assistant", content: "Goodbye! Feel free to come back anytime you need help with your college applications." }]);
+        return;
+      }
+      
       setMessages((m) => [...m, { role: "assistant", content: text }]);
       if (conversationActive && voiceEnabled && text && !text.includes("Rate Limit") && !text.includes("Error")) {
         await playAudio(text);

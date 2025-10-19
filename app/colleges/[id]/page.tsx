@@ -2,11 +2,13 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ChatbotPanel } from "@/components/ChatbotPanel";
+import { CollegeLogo } from "@/components/CollegeLogo";
 
 export default function CollegeEditorPage() {
   const params = useParams();
   const id = params?.id as string;
   const [name, setName] = useState("");
+  const [website, setWebsite] = useState<string | undefined>(undefined);
   const [prompt, setPrompt] = useState("");
   const [fields, setFields] = useState<{ id: string; label: string; type: "text" | "textarea" | "select"; optional?: boolean; options?: string[] }[]>([]);
   const [answers, setAnswers] = useState<Record<string,string>>({});
@@ -45,6 +47,7 @@ export default function CollegeEditorPage() {
         const college = list.find((x: any) => x.id === id);
         if (college) {
           setName(college.name);
+          setWebsite(college.website);
           // Update the college object in the list if it has a percent but not in the list
           if (college.percent !== undefined) {
             setPercent(college.percent);
@@ -320,14 +323,26 @@ export default function CollegeEditorPage() {
     }
   };
 
+  const category = categoryFromPercent(percent);
+  const badgeColors = {
+    Safety: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700',
+    Target: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700',
+    Reach: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-700'
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         <div className="card p-6 sticky top-0 z-20 bg-white dark:bg-gray-900 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="text-xl font-semibold">{name || "College"}</div>
-            {typeof percent === 'number' && (
-              <div className="badge">{percent}% • {categoryFromPercent(percent)}</div>
+            <div className="flex items-center gap-3">
+              <CollegeLogo name={name} website={website} size="md" />
+              <div className="text-xl font-semibold">{name || "College"}</div>
+            </div>
+            {typeof percent === 'number' && category && (
+              <span className={`px-3 py-1 text-sm font-medium rounded-full border ${badgeColors[category]}`}>
+                {percent}% • {category}
+              </span>
             )}
           </div>
         </div>

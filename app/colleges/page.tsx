@@ -13,6 +13,8 @@ export default function CollegesPage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [showSuggest, setShowSuggest] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   const suggestions = name.length < 2 ? [] : collegesDB.filter(c => c.name.toLowerCase().includes(name.toLowerCase())).slice(0, 10);
 
   const categoryFromPercent = (p?: number) => {
@@ -129,15 +131,28 @@ export default function CollegesPage() {
     keysToRemove.forEach(key => localStorage.removeItem(key));
   };
 
-  const editCollegeName = (id: string, currentName: string) => {
-    const newName = prompt("Edit college name:", currentName);
-    if (!newName || newName.trim() === currentName) return;
+  const startEditingName = (id: string, currentName: string) => {
+    setEditingId(id);
+    setEditingName(currentName);
+  };
+
+  const saveEditedName = (id: string) => {
+    if (!editingName.trim() || editingName.trim() === colleges.find(c => c.id === id)?.name) {
+      setEditingId(null);
+      return;
+    }
     
     const updatedColleges = colleges.map(c => 
-      c.id === id ? { ...c, name: newName.trim() } : c
+      c.id === id ? { ...c, name: editingName.trim() } : c
     );
     setColleges(updatedColleges);
     localStorage.setItem("colleges", JSON.stringify(updatedColleges));
+    setEditingId(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingName("");
   };
 
   return (
@@ -185,39 +200,65 @@ export default function CollegesPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <CollegeLogo name={c.name} website={c.website} size="md" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <Link href={`/colleges/${c.id}`} className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title truncate">{c.name}</Link>
-                          {category && (
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${badgeColors[category]}`}>
-                              {category}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {[c.city, c.state].filter(Boolean).join(", ")}
-                        </div>
+                        {editingId === c.id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="input py-1 text-sm flex-1"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveEditedName(c.id);
+                                if (e.key === 'Escape') cancelEditing();
+                              }}
+                            />
+                            <button onClick={() => saveEditedName(c.id)} className="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition">Save</button>
+                            <button onClick={cancelEditing} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <Link href={`/colleges/${c.id}`} className="text-lg font-semibold hover:text-emerald-700 dark:hover:text-amber-400 transition font-title truncate">{c.name}</Link>
+                              {category && (
+                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${badgeColors[category]}`}>
+                                  {category}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {[c.city, c.state].filter(Boolean).join(", ")}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      {typeof c.percent === 'number' && (
-                        <div className="text-2xl font-bold text-emerald-700 dark:text-amber-400">{c.percent}%</div>
+                      {typeof c.percent === 'number' && category && (
+                        <div className={`text-2xl font-bold ${
+                          category === 'Safety' ? 'text-emerald-700 dark:text-emerald-400' :
+                          category === 'Target' ? 'text-blue-700 dark:text-blue-400' :
+                          'text-amber-700 dark:text-amber-400'
+                        }`}>{c.percent}%</div>
                       )}
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={(e) => { e.preventDefault(); editCollegeName(c.id, c.name); }}
-                          className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/60 transition"
-                          title="Edit name"
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          onClick={(e) => { e.preventDefault(); deleteCollege(c.id); }}
-                          className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/60 transition"
-                          title="Delete"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      {editingId !== c.id && (
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={(e) => { e.preventDefault(); startEditingName(c.id, c.name); }}
+                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/60 transition"
+                            title="Edit name"
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            onClick={(e) => { e.preventDefault(); deleteCollege(c.id); }}
+                            className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/60 transition"
+                            title="Delete"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </li>
