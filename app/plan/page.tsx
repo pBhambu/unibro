@@ -8,6 +8,8 @@ export default function PlanPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [planItems, setPlanItems] = useState<PlanItem[]>([]);
+  const [customPrompt, setCustomPrompt] = useState<string>("");
+  const [planSummary, setPlanSummary] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const abortRef = useRef<AbortController | null>(null);
@@ -21,9 +23,13 @@ export default function PlanPage() {
       const s = localStorage.getItem("plan.startDate");
       const d = localStorage.getItem("plan.endDate");
       const p = localStorage.getItem("plan.items");
+      const prompt = localStorage.getItem("plan.customPrompt");
+      const summary = localStorage.getItem("plan.summary");
       console.log('Loading plan from localStorage:', { startDate: s, endDate: d, items: p });
       if (s) setStartDate(s);
       if (d) setEndDate(d);
+      if (prompt) setCustomPrompt(prompt);
+      if (summary) setPlanSummary(summary);
       if (p) {
         try {
           const parsed = JSON.parse(p);
@@ -46,6 +52,14 @@ export default function PlanPage() {
     if(endDate) localStorage.setItem("plan.endDate", endDate); 
     else localStorage.removeItem("plan.endDate");
   },[endDate]);
+  useEffect(()=>{ 
+    if(customPrompt) localStorage.setItem("plan.customPrompt", customPrompt); 
+    else localStorage.removeItem("plan.customPrompt");
+  },[customPrompt]);
+  useEffect(()=>{ 
+    if(planSummary) localStorage.setItem("plan.summary", planSummary); 
+    else localStorage.removeItem("plan.summary");
+  },[planSummary]);
   useEffect(()=>{ 
     if (initialLoadRef.current) {
       initialLoadRef.current = false;
@@ -79,15 +93,36 @@ export default function PlanPage() {
       location: localStorage.getItem("profile.location"),
       activities: localStorage.getItem("app.activities"),
     };
+    
+    // Convert existing plan items to text format for AI to modify
+    const existingPlan = planItems.length > 0 
+      ? planItems.map(item => `${item.date}: ${item.action}`).join('\n')
+      : null;
+    
     try {
       setLoading(true);
       abortRef.current = new AbortController();
-      const res = await fetch("/api/gemini/plan", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ startDate, endDate, profile }), signal: abortRef.current.signal });
+      const res = await fetch("/api/gemini/plan", { 
+        method: "POST", 
+        headers: {"Content-Type":"application/json"}, 
+        body: JSON.stringify({ 
+          startDate, 
+          endDate, 
+          profile, 
+          customPrompt: customPrompt.trim() || null,
+          existingPlan 
+        }), 
+        signal: abortRef.current.signal 
+      });
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
       const planText = data.plan || "";
+      const summary = data.summary || "";
       parsePlanText(planText);
+      if (summary) setPlanSummary(summary);
+      // Clear custom prompt after successful generation
+      setCustomPrompt("");
     } catch (e: any) {
       // Preserve existing plan items on error (unless aborted)
       // No state clearing here to avoid losing saved plans
@@ -182,7 +217,8 @@ export default function PlanPage() {
               </div>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-end">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-end">
             <label className="block">
               <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">Start Date</div>
               <input type="date" className="input" value={startDate} onChange={(e)=>setStartDate(e.target.value)} />
@@ -196,6 +232,23 @@ export default function PlanPage() {
               <button className="btn disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap" onClick={generate} disabled={loading}>
                 {loading ? "Generating..." : "Generate Plan"}
               </button>
+            </div>
+            </div>
+            <div>
+              <label className="block mb-1 text-sm text-gray-600 dark:text-gray-400">
+                Custom Instructions (Optional)
+              </label>
+              <textarea
+                className="input w-full min-h-[80px] resize-y"
+                placeholder="e.g., 'I need summer 2026 off', 'Include local opportunities in Seattle', 'Focus on research projects'..."
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+              />
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {planItems.length > 0 
+                  ? 'AI will modify your existing plan based on these instructions' 
+                  : 'AI will create a new plan with these instructions'}
+              </div>
             </div>
           </div>
         </div>
@@ -295,6 +348,21 @@ export default function PlanPage() {
             </div>
           )}
         </div>
+
+        {planSummary && (
+          <div className="card p-6">
+            <div className="text-lg font-bold text-gray-900 dark:text-gray-100 font-title mb-3">Plan Summary</div>
+            <div 
+              className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
+              dangerouslySetInnerHTML={{ 
+                __html: planSummary
+                  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                  .replace(/\n/g, '<br/>') 
+              }} 
+            />
+          </div>
+        )}
       </div>
 
       {/* Chat functionality is now handled by the global CounselorBro component */}
