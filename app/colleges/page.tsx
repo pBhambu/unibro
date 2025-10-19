@@ -21,24 +21,97 @@ export default function CollegesPage() {
     return "Reach" as const;
   };
 
+  // Load colleges from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("colleges");
-    if (saved) setColleges(JSON.parse(saved));
+    const loadColleges = () => {
+      try {
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem("colleges");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              setColleges(parsed);
+              return;
+            }
+          }
+          // Initialize with empty array if no saved data
+          localStorage.setItem("colleges", JSON.stringify([]));
+        }
+      } catch (error) {
+        console.error("Error loading colleges:", error);
+      }
+    };
+
+    // Load immediately
+    loadColleges();
+
+    // Also listen for storage events to sync across tabs
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'colleges' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setColleges(parsed);
+          }
+        } catch (error) {
+          console.error("Error parsing storage event:", error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  // Save colleges to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("colleges", JSON.stringify(colleges));
+    if (typeof window !== 'undefined' && colleges.length > 0) {
+      try {
+        localStorage.setItem("colleges", JSON.stringify(colleges));
+      } catch (error) {
+        console.error("Error saving colleges:", error);
+      }
+    }
   }, [colleges]);
+
+  // Load form state from localStorage
+  useEffect(() => {
+    const savedName = localStorage.getItem("colleges.form.name");
+    const savedCity = localStorage.getItem("colleges.form.city");
+    const savedState = localStorage.getItem("colleges.form.state");
+    if (savedName) setName(savedName);
+    if (savedCity) setCity(savedCity);
+    if (savedState) setState(savedState);
+  }, []);
+
+  // Save form state to localStorage
+  useEffect(() => { if (name) localStorage.setItem("colleges.form.name", name); }, [name]);
+  useEffect(() => { if (city) localStorage.setItem("colleges.form.city", city); }, [city]);
+  useEffect(() => { if (state) localStorage.setItem("colleges.form.state", state); }, [state]);
 
   const addCollege = () => {
     if (!name.trim()) return;
-    setColleges((c) => [{ id: uuid(), name, city, state, percent: undefined }, ...c]);
-    setName(""); setCity(""); setState("");
+    const newCollege = { id: uuid(), name, city, state, percent: undefined };
+    const updatedColleges = [newCollege, ...colleges];
+    setColleges(updatedColleges);
+    // Save to localStorage immediately
+    localStorage.setItem("colleges", JSON.stringify(updatedColleges));
+    
+    // Reset form
+    setName(""); 
+    setCity(""); 
+    setState("");
     setShowSuggest(false);
+    
+    // Clear form data from localStorage
+    localStorage.removeItem("colleges.form.name");
+    localStorage.removeItem("colleges.form.city");
+    localStorage.removeItem("colleges.form.state");
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Left Column - Main Content */}
       <div className="lg:col-span-2 space-y-6">
         <div className="card p-4 relative z-20">
           <div className="font-semibold mb-2">Add College</div>
@@ -105,10 +178,15 @@ export default function CollegesPage() {
         </div>
       </div>
 
-      <div className="lg:col-span-3">
-        <div className="card p-4">
+      {/* Right Column - Tips Section */}
+      <div className="lg:col-span-1">
+        <div className="card p-4 sticky top-6">
           <div className="font-semibold mb-2">Tips</div>
-          <div className="text-sm text-gray-700">Click a college to answer its specific questions and see a realistic chance estimate.</div>
+          <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+            <p>• Click a college to answer its specific questions and see a realistic chance estimate.</p>
+            <p>• Add your safety, target, and reach schools to build a balanced college list.</p>
+            <p>• Use the chance estimator to get a realistic assessment of your admission odds.</p>
+          </div>
         </div>
       </div>
     </div>

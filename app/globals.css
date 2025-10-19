@@ -76,7 +76,7 @@ h1, h2, h3, h4, h5, h6, .title-font {
 }
 
 .btn {
-  @apply inline-flex items-center rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-600 dark:from-amber-700 dark:to-amber-600 px-5 py-2.5 text-white hover:from-emerald-800 hover:to-emerald-700 dark:hover:from-amber-800 dark:hover:to-amber-700 transition-all duration-200 font-medium shadow-lg;
+  @apply inline-flex items-center rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-600 dark:from-emerald-700 dark:to-emerald-600 px-5 py-2.5 text-white hover:from-emerald-800 hover:to-emerald-700 dark:hover:from-emerald-800 dark:hover:to-emerald-700 transition-all duration-200 font-medium shadow-lg;
   box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
 }
 
@@ -92,7 +92,7 @@ h1, h2, h3, h4, h5, h6, .title-font {
 }
 
 .btn-secondary {
-  @apply inline-flex items-center rounded-xl bg-emerald-100 dark:bg-amber-900/30 px-5 py-2.5 text-emerald-800 dark:text-amber-300 hover:bg-emerald-200 dark:hover:bg-amber-900/50 transition-all duration-200 font-medium;
+  @apply inline-flex items-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30 px-5 py-2.5 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-all duration-200 font-medium;
   box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.15);
 }
 
@@ -103,7 +103,7 @@ h1, h2, h3, h4, h5, h6, .title-font {
 }
 
 .badge {
-  @apply inline-flex items-center rounded-full bg-emerald-100 dark:bg-amber-900/40 text-emerald-800 dark:text-amber-200 px-3 py-1 text-sm font-medium;
+  @apply inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 px-3 py-1 text-sm font-medium;
   box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.2);
 }
 

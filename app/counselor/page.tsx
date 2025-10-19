@@ -168,13 +168,15 @@ export default function CounselorBroPage() {
         colleges: JSON.parse(localStorage.getItem("colleges") || "[]"),
         plan: localStorage.getItem("plan.table"),
       };
-      const personality = localStorage.getItem('customPersonality') || undefined;
+      const customPersonality = localStorage.getItem('customPersonality');
       const apiKey = localStorage.getItem('geminiApiKey') || undefined;
-      const systemPrompt = "You are CounselorBro, a friendly and knowledgeable college admissions counselor. Always refer to yourself as CounselorBro when appropriate.";
+      const defaultPersonality = "You are CounselorBro, a friendly and knowledgeable college admissions counselor. Always refer to yourself as CounselorBro when appropriate.";
+      const personality = customPersonality ? `${defaultPersonality} ${customPersonality}` : defaultPersonality;
+      
       const res = await fetch("/api/gemini/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg], context: enrichedContext, personality: personality || systemPrompt, apiKey }),
+        body: JSON.stringify({ messages: [...messages, userMsg], context: enrichedContext, personality, apiKey }),
       });
       const txt = await res.text();
       let data: any = {};

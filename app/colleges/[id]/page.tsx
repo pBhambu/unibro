@@ -31,26 +31,135 @@ export default function CollegeEditorPage() {
     return "Reach" as const;
   };
 
+  // Load all college data from localStorage on mount
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("colleges")||"[]");
-    const c = list.find((x: any)=>x.id===id);
-    if (c) setName(c.name);
-    const savedFields = localStorage.getItem(`college.${id}.fields`);
-    const savedAnswers = localStorage.getItem(`college.${id}.answers`);
-    if (savedFields) setFields(JSON.parse(savedFields));
-    if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
-    const savedPrompt = localStorage.getItem(`college.${id}.prompt`);
-    if (savedPrompt) setPrompt(savedPrompt);
-    const p = localStorage.getItem(`college.${id}.percent`);
-    if (p) setPercent(parseInt(p));
-    const savedCommonApp = localStorage.getItem(`college.${id}.commonAppUse`);
-    if (savedCommonApp) setCommonAppUse(JSON.parse(savedCommonApp));
+    const loadCollegeData = () => {
+      if (typeof window === 'undefined') return;
+      
+      try {
+        // Load college name from the main colleges list
+        const list = JSON.parse(localStorage.getItem("colleges") || "[]");
+        const college = list.find((x: any) => x.id === id);
+        if (college) {
+          setName(college.name);
+          // Update the college object in the list if it has a percent but not in the list
+          if (college.percent !== undefined) {
+            setPercent(college.percent);
+          }
+        }
+
+        // Load all other college-specific data
+        const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
+          const saved = localStorage.getItem(`college.${id}.${key}`);
+          return saved ? JSON.parse(saved) : defaultValue;
+        };
+
+        setFields(loadFromStorage('fields', []));
+        setAnswers(loadFromStorage('answers', {}));
+        setPrompt(loadFromStorage('prompt', ''));
+        setCommonAppUse(loadFromStorage('commonAppUse', {
+          gpa: true, sat: true, ap: true, activities: true, 
+          honors: true, additional: true, essay: true
+        }));
+        
+        const savedPercent = localStorage.getItem(`college.${id}.percent`);
+        if (savedPercent) setPercent(parseInt(savedPercent));
+
+      } catch (error) {
+        console.error("Error loading college data:", error);
+      }
+    };
+
+    // Load data immediately
+    loadCollegeData();
+
+    // Listen for storage events to sync across tabs
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === `college.${id}.fields` && e.newValue) {
+        try { setFields(JSON.parse(e.newValue)); } catch {}
+      } else if (e.key === `college.${id}.answers` && e.newValue) {
+        try { setAnswers(JSON.parse(e.newValue)); } catch {}
+      } else if (e.key === `college.${id}.prompt` && e.newValue !== null) {
+        setPrompt(e.newValue);
+      } else if (e.key === `college.${id}.commonAppUse` && e.newValue) {
+        try { setCommonAppUse(JSON.parse(e.newValue)); } catch {}
+      } else if (e.key === 'colleges' && e.newValue) {
+        try {
+          const list = JSON.parse(e.newValue);
+          const college = list.find((x: any) => x.id === id);
+          if (college) {
+            setName(college.name);
+            if (college.percent !== undefined) {
+              setPercent(college.percent);
+            }
+          }
+        } catch {}
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, [id]);
 
-  useEffect(()=>{ localStorage.setItem(`college.${id}.fields`, JSON.stringify(fields)); }, [id, fields]);
-  useEffect(()=>{ localStorage.setItem(`college.${id}.answers`, JSON.stringify(answers)); }, [id, answers]);
-  useEffect(()=>{ localStorage.setItem(`college.${id}.prompt`, prompt); }, [id, prompt]);
-  useEffect(()=>{ localStorage.setItem(`college.${id}.commonAppUse`, JSON.stringify(commonAppUse)); }, [id, commonAppUse]);
+  // Save data to localStorage when it changes
+  const saveToStorage = (key: string, value: any) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const storageKey = `college.${id}.${key}`;
+      localStorage.setItem(storageKey, JSON.stringify(value));
+      // Trigger storage event for other tabs
+      window.dispatchEvent(new StorageEvent('storage', { key: storageKey, newValue: JSON.stringify(value) }));
+    } catch (error) {
+      console.error(`Error saving ${key}:`, error);
+    }
+  };
+
+  // Save fields when they change
+  useEffect(() => { saveToStorage('fields', fields); }, [id, fields]);
+  
+  // Save answers when they change
+  useEffect(() => { saveToStorage('answers', answers); }, [id, answers]);
+  
+  // Save prompt when it changes
+  useEffect(() => { 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`college.${id}.prompt`, prompt);
+      window.dispatchEvent(new StorageEvent('storage', { 
+        key: `college.${id}.prompt`, 
+        newValue: prompt 
+      }));
+    }
+  }, [id, prompt]);
+  
+  // Save common app settings when they change
+  useEffect(() => { saveToStorage('commonAppUse', commonAppUse); }, [id, commonAppUse]);
+  
+  // Save percent to both the college object and its own key
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Save to dedicated percent key
+    if (percent !== null) {
+      localStorage.setItem(`college.${id}.percent`, String(percent));
+    }
+    
+    // Also update the college in the main list
+    try {
+      const list = JSON.parse(localStorage.getItem("colleges") || "[]");
+      const idx = list.findIndex((x: any) => x.id === id);
+      if (idx >= 0) {
+        const updated = [...list];
+        updated[idx] = { ...updated[idx], percent };
+        localStorage.setItem("colleges", JSON.stringify(updated));
+        window.dispatchEvent(new StorageEvent('storage', { 
+          key: 'colleges', 
+          newValue: JSON.stringify(updated) 
+        }));
+      }
+    } catch (error) {
+      console.error("Error updating college percent:", error);
+    }
+  }, [id, percent]);
 
   const generate = async () => {
     if (loadingFields) return;
@@ -58,13 +167,29 @@ export default function CollegeEditorPage() {
       setLoadingFields(true);
       abortFieldsRef.current = new AbortController();
       const apiKey = localStorage.getItem('geminiApiKey') || undefined;
-      const res = await fetch("/api/gemini/questions", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ prompt, apiKey }), signal: abortFieldsRef.current.signal });
+      
+      // Save the current prompt first
+      saveToStorage('prompt', prompt);
+      
+      const res = await fetch("/api/gemini/questions", { 
+        method: "POST", 
+        headers: {"Content-Type":"application/json"}, 
+        body: JSON.stringify({ prompt, apiKey }), 
+        signal: abortFieldsRef.current.signal 
+      });
+      
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
       if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+      
       const generatedFields = Array.isArray(data.fields) ? data.fields : [];
       setFields(generatedFields);
+      
+      // Save fields immediately
+      saveToStorage('fields', generatedFields);
+      
+      // Parse answers from the prompt if possible
       const newAnswers: Record<string,string> = {};
       generatedFields.forEach((f: any) => {
         const labelEscaped = f.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -81,7 +206,10 @@ export default function CollegeEditorPage() {
           }
         }
       });
+      
+      // Update answers and save them
       setAnswers(newAnswers);
+      saveToStorage('answers', newAnswers);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
         setFields([]);

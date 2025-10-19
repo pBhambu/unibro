@@ -58,12 +58,79 @@ export default function ApplicationPage() {
         <div className="card p-6">
           <div className="text-xl font-semibold mb-4">Common App Sections</div>
           <div className="grid grid-cols-1 gap-4">
-            <AutosaveInput storageKey="app.gpa" label="GPA" placeholder="3.9 unweighted" />
+            <AutosaveInput storageKey="education.grades.current" label="GPA" placeholder="3.9 unweighted" />
             <AutosaveInput storageKey="app.sat" label="SAT / ACT" placeholder="1540 SAT" />
-            <AutosaveTextArea storageKey="app.ap" label="AP Tests" placeholder="AP Calculus BC (5), AP Physics C (5), AP Computer Science A (5)" rows={3} />
-            <AutosaveTextArea storageKey="app.activities" label="Activities" placeholder="List your major activities and roles" />
-            <AutosaveTextArea storageKey="app.honors" label="Honors" placeholder="List 3-5 honors" />
-            <AutosaveTextArea storageKey="app.additional" label="Additional Information" placeholder="Anything else admissions should know" />
+            <AutosaveTextArea storageKey="education.ap" label="AP Tests" placeholder="AP Calculus BC (5), AP Physics C (5), AP Computer Science A (5)" rows={3} />
+            <AutosaveTextArea storageKey="education.activities" label="Activities" placeholder="List your major activities and roles" />
+            <AutosaveTextArea storageKey="education.honors" label="Honors" placeholder="List 3-5 honors" />
+            <AutosaveTextArea storageKey="education.additional" label="Additional Information" placeholder="Anything else admissions should know" />
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="text-xl font-semibold mb-4">Education</div>
+          <div className="space-y-6">
+            <div>
+              <div className="font-semibold mb-3">Current or Most Recent Secondary/High School</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AutosaveInput storageKey="education.current.school" label="School Name" placeholder="Roosevelt High School" />
+                <AutosaveInput storageKey="education.current.city" label="City" placeholder="Seattle" />
+                <AutosaveInput storageKey="education.current.state" label="State" placeholder="WA" />
+                <AutosaveInput storageKey="education.current.country" label="Country" placeholder="United States" />
+                <AutosaveInput storageKey="education.current.startDate" label="Start Date (MM/YYYY)" placeholder="09/2020" />
+                <AutosaveInput storageKey="education.current.endDate" label="End Date (MM/YYYY)" placeholder="06/2024" />
+              </div>
+            </div>
+
+            <div>
+              <div className="font-semibold mb-3">Other Secondary/High Schools</div>
+              <AutosaveTextArea storageKey="education.other.schools" label="Other schools attended" placeholder="List any other high schools attended with dates" rows={3} />
+            </div>
+
+            <div>
+              <div className="font-semibold mb-3">Colleges & Universities</div>
+              <AutosaveTextArea storageKey="education.colleges" label="Colleges attended (if any)" placeholder="List any colleges attended with dates and degrees" rows={3} />
+            </div>
+
+            <div>
+              <div className="font-semibold mb-3">Grades</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AutosaveInput storageKey="education.grades.current" label="Current GPA" placeholder="3.9" />
+                <AutosaveInput storageKey="education.grades.cumulative" label="Cumulative GPA" placeholder="3.8" />
+                <AutosaveInput storageKey="education.grades.weighted" label="Weighted GPA" placeholder="4.2" />
+                <AutosaveInput storageKey="education.grades.classRank" label="Class Rank" placeholder="15/350" />
+              </div>
+            </div>
+
+            <div>
+              <div className="font-semibold mb-3">Current or Most Recent Year Courses</div>
+              <AutosaveTextArea storageKey="education.courses.current" label="Current year courses" placeholder="List current year courses with grades if available" rows={6} />
+              <div className="mt-3">
+                <div className="text-sm text-gray-600 mb-2">Or upload transcript PDF:</div>
+                <input type="file" accept=".pdf" className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  const apiKey = localStorage.getItem('geminiApiKey');
+                  if (apiKey) formData.append('apiKey', apiKey);
+                  try {
+                    const res = await fetch('/api/gemini/questions-pdf', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.fields) {
+                      // Parse transcript and auto-fill courses
+                      const coursesText = data.fields.find((f: any) => f.label.toLowerCase().includes('course'))?.label || 'Courses extracted from transcript';
+                      localStorage.setItem('education.courses.current', coursesText);
+                      alert('Transcript parsed! Courses section updated.');
+                    } else {
+                      alert('Failed to parse transcript: ' + (data.error || 'Unknown error'));
+                    }
+                  } catch (err) {
+                    alert('Failed to parse transcript');
+                  }
+                }} />
+              </div>
+            </div>
           </div>
         </div>
 
