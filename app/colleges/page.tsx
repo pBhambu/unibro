@@ -105,7 +105,7 @@ export default function CollegesPage() {
         </div>
       </div>
 
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-3">
         <div className="card p-4">
           <div className="font-semibold mb-2">Tips</div>
           <div className="text-sm text-gray-700">Click a college to answer its specific questions and see a realistic chance estimate.</div>
