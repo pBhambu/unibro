@@ -4,7 +4,7 @@ import { DEFAULT_AI_PERSONALITY } from "@/lib/ai-personality";
 
 export async function POST(req: NextRequest) {
   try {
-    const { startDate, endDate, profile, customPrompt, existingPlan } = await req.json();
+    const { startDate, endDate, profile, customPrompt, existingPlan, apiKey } = await req.json();
     const dateRange = startDate ? `starting from ${startDate} and ending by ${endDate}` : `ending by ${endDate}`;
     
     let prompt = `${DEFAULT_AI_PERSONALITY}\n\n`;
@@ -30,12 +30,12 @@ export async function POST(req: NextRequest) {
     
     prompt += `Student profile: ${JSON.stringify(profile)}`;
     
-    const text = await geminiText(prompt);
+    const text = await geminiText(prompt, apiKey);
     
     // Generate a summary of the plan
     const summaryPrompt = `${DEFAULT_AI_PERSONALITY}\n\nBased on this college admissions plan, provide a brief summary (3-4 sentences) covering:\n- Main strategy and approach\n- Key milestones and goals\n- Important things the student should know\n\nPlan:\n${text}\n\nProvide a concise, actionable summary:`;
     
-    const summary = await geminiText(summaryPrompt);
+    const summary = await geminiText(summaryPrompt, apiKey);
     
     return NextResponse.json({ plan: text, summary });
   } catch (err: any) {

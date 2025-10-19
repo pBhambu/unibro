@@ -102,6 +102,7 @@ export default function PlanPage() {
     try {
       setLoading(true);
       abortRef.current = new AbortController();
+      const apiKey = localStorage.getItem('geminiApiKey');
       const res = await fetch("/api/gemini/plan", { 
         method: "POST", 
         headers: {"Content-Type":"application/json"}, 
@@ -110,7 +111,8 @@ export default function PlanPage() {
           endDate, 
           profile, 
           customPrompt: customPrompt.trim() || null,
-          existingPlan 
+          existingPlan,
+          apiKey 
         }), 
         signal: abortRef.current.signal 
       });

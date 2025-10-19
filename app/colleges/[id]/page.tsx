@@ -292,7 +292,8 @@ export default function CollegeEditorPage() {
     try {
       setLoadingChance(true);
       abortChanceRef.current = new AbortController();
-      const res = await fetch("/api/gemini/chance", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ college: name, answers, profile }), signal: abortChanceRef.current.signal });
+      const apiKey = localStorage.getItem('geminiApiKey');
+      const res = await fetch("/api/gemini/chance", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ college: name, answers, profile, apiKey }), signal: abortChanceRef.current.signal });
       const txt = await res.text();
       let data: any = {};
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }

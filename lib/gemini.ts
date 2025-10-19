@@ -6,7 +6,16 @@ export function hasGemini() {
 
 export async function geminiText(prompt: string, customApiKey?: string): Promise<string> {
   const key = customApiKey || apiKey;
-  if (!key) return mockResponse(prompt);
+  console.log('Gemini API Key check:', { 
+    hasCustomKey: !!customApiKey, 
+    hasEnvKey: !!apiKey,
+    keyLength: key?.length || 0,
+    usingMock: !key 
+  });
+  if (!key) {
+    console.log('No API key found, using mock response');
+    return mockResponse(prompt);
+  }
   
   try {
     const { GoogleGenerativeAI } = await import("@google/generative-ai");

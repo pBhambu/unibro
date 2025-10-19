@@ -45,10 +45,11 @@ export default function ApplicationPage() {
       setLoading(true);
       abortRef.current = new AbortController();
       const essay = localStorage.getItem("app.essay.main") || "";
+      const apiKey = localStorage.getItem("geminiApiKey");
       const res = await fetch("/api/gemini/essay-feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ essay }),
+        body: JSON.stringify({ essay, apiKey }),
         signal: abortRef.current.signal
       });
       const bodyText = await res.text();
