@@ -12,6 +12,7 @@ export default function CollegeEditorPage() {
   const [fields, setFields] = useState<{ id: string; label: string; type: "text" | "textarea" | "select"; optional?: boolean; options?: string[] }[]>([]);
   const [answers, setAnswers] = useState<Record<string,string>>({});
   const [percent, setPercent] = useState<number | null>(null);
+  const [reasoning, setReasoning] = useState<string>("");
   const [loadingFields, setLoadingFields] = useState(false);
   const [loadingChance, setLoadingChance] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -91,6 +92,9 @@ export default function CollegeEditorPage() {
         
         const savedPercent = localStorage.getItem(`college.${id}.percent`);
         if (savedPercent) setPercent(parseInt(savedPercent));
+        
+        const savedReasoning = localStorage.getItem(`college.${id}.reasoning`);
+        if (savedReasoning) setReasoning(savedReasoning);
         
         // Mark data as loaded
         setDataLoaded(true);
@@ -299,9 +303,12 @@ export default function CollegeEditorPage() {
       try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
       if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
       const pct = typeof data.percent === 'number' ? data.percent : null;
+      const rsn = data.reasoning || "";
       if (pct !== null) {
         setPercent(pct);
+        setReasoning(rsn);
         localStorage.setItem(`college.${id}.percent`, String(pct));
+        if (rsn) localStorage.setItem(`college.${id}.reasoning`, rsn);
         const list = JSON.parse(localStorage.getItem("colleges")||"[]");
         const idx = list.findIndex((x: any)=>x.id===id);
         if (idx>=0) { list[idx].percent = pct; localStorage.setItem("colleges", JSON.stringify(list)); }
@@ -436,7 +443,22 @@ export default function CollegeEditorPage() {
               <div className="font-semibold text-blue-900 dark:text-blue-100">How is the percentage calculated?</div>
             </div>
             <div className="text-sm text-blue-800 dark:text-blue-200 space-y-3">
-              <p>
+              {reasoning && (
+                <div className="space-y-2">
+                  <div className="font-semibold">Why {percent}%?</div>
+                  <div 
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: reasoning
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br/>') 
+                    }} 
+                  />
+                </div>
+              )}
+
+              <p className={reasoning ? "pt-3 border-t border-blue-200 dark:border-blue-700" : ""}>
                 Your <strong>{percent}% admission chance</strong> for {name} was calculated using AI analysis of your complete profile. Here's what was considered:
               </p>
               
