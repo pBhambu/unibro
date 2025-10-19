@@ -21,6 +21,4 @@ Visit http://localhost:3000
 
 ## Notes
 
-- All inputs auto-save to `localStorage` for now. No server database is required.
-- Gemini API is used via `/app/api/gemini/*`; if no API key is present, a safe mock responds.
-- This is a minimal MVP scaffold meant for rapid iteration.
+- API KEYS MUST BE ENTERED IN SETTINGS PAGE of UniBro. (free).
