@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
 
     // Try to use pdf-parse if available, otherwise return error with instructions
     try {
-      const pdfParse = (await import('pdf-parse')).default;
+      const pdfParseModule = await import('pdf-parse') as any;
+      const pdfParse = pdfParseModule.default || pdfParseModule;
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const data = await pdfParse(buffer);
