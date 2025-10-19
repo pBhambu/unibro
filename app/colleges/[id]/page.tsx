@@ -426,6 +426,69 @@ export default function CollegeEditorPage() {
             </div>
           </div>
         )}
+
+        {typeof percent === 'number' && (
+          <div className="card p-6 space-y-3 bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="font-semibold text-blue-900 dark:text-blue-100">How is the percentage calculated?</div>
+            </div>
+            <div className="text-sm text-blue-800 dark:text-blue-200 space-y-3">
+              <p>
+                Your <strong>{percent}% admission chance</strong> for {name} was calculated using AI analysis of your complete profile. Here's what was considered:
+              </p>
+              
+              <div className="space-y-2">
+                <div className="font-semibold">From Your Common App:</div>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  {commonAppUse.gpa && <li>Your GPA{localStorage.getItem("app.gpa") ? `: ${localStorage.getItem("app.gpa")}` : ""}</li>}
+                  {commonAppUse.sat && <li>Your SAT/ACT scores{localStorage.getItem("app.sat") ? `: ${localStorage.getItem("app.sat")}` : ""}</li>}
+                  {commonAppUse.ap && <li>Your AP courses and scores{localStorage.getItem("app.ap") ? ` (${localStorage.getItem("app.ap")?.split('\n').length || 0} courses)` : ""}</li>}
+                  {commonAppUse.activities && <li>Your extracurricular activities{localStorage.getItem("app.activities") ? ` (${localStorage.getItem("app.activities")?.split('\n').filter((l: string) => l.trim()).length || 0} activities)` : ""}</li>}
+                  {commonAppUse.honors && <li>Your honors and awards{localStorage.getItem("app.honors") ? ` (${localStorage.getItem("app.honors")?.split('\n').filter((l: string) => l.trim()).length || 0} honors)` : ""}</li>}
+                  {commonAppUse.additional && <li>Additional information you provided</li>}
+                  {commonAppUse.essay && <li>Your personal statement essay</li>}
+                </ul>
+              </div>
+
+              {Object.keys(answers).length > 0 && (
+                <div className="space-y-2">
+                  <div className="font-semibold">College-Specific Responses:</div>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>{Object.keys(answers).length} supplemental question{Object.keys(answers).length !== 1 ? 's' : ''} answered for {name}</li>
+                  </ul>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="font-semibold">Your Profile Context:</div>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  {localStorage.getItem("profile.majors") && <li>Intended major(s): {localStorage.getItem("profile.majors")}</li>}
+                  {localStorage.getItem("profile.location") && <li>Location: {localStorage.getItem("profile.location")}</li>}
+                  {localStorage.getItem("profile.school") && <li>High school: {localStorage.getItem("profile.school")}</li>}
+                  {(localStorage.getItem("profile.interests") || localStorage.getItem("profile.hobbies") || localStorage.getItem("profile.skills")) && (
+                    <li>Personal interests and background</li>
+                  )}
+                </ul>
+              </div>
+
+              <div className="pt-2 border-t border-blue-200 dark:border-blue-700">
+                <p>
+                  <strong>Result Category:</strong> {' '}
+                  {category === 'Safety' && <span className="text-emerald-700 dark:text-emerald-400 font-medium">Safety School (80%+ chance)</span>}
+                  {category === 'Target' && <span className="text-blue-700 dark:text-blue-400 font-medium">Target School (50-79% chance)</span>}
+                  {category === 'Reach' && <span className="text-amber-700 dark:text-amber-400 font-medium">Reach School (&lt;50% chance)</span>}
+                </p>
+              </div>
+
+              <p className="text-xs pt-1 text-blue-700 dark:text-blue-300 italic">
+                Note: This is an AI-generated estimate based on your provided information. Actual admission decisions are holistic and can vary significantly based on many factors including essays, recommendations, demonstrated interest, and institutional priorities.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="lg:col-span-1">
